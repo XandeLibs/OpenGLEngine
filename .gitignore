@@ -1,3 +1,4 @@
 main
 build/
 .clangd
+compile_flags.txt
