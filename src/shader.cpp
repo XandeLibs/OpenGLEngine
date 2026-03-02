@@ -1,5 +1,9 @@
 #include "shader.h"
 
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
 Shader::Shader(const char *vertexPath, const char *fragmentPath) {
   std::string vertexCode = shaderFromFile(vertexPath);
   std::string fragmentCode = shaderFromFile(fragmentPath);

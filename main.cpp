@@ -8,10 +8,13 @@
 
 #include <iostream>
 
+#include "camera.hpp"
 #include "shader.h"
 #include "stb_image.h"
 
 float mixval;
+
+Camera camera;
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -30,8 +33,6 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   static float lastX = 400, lastY = 300;
 
-  static float yaw = 0, pitch = 0;
-
   if (firstMouse) {
     lastX = xpos;
     lastY = ypos;
@@ -43,60 +44,44 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   lastX = xpos;
   lastY = ypos;
 
-  const float sensitivity = 0.1f;
-  xoffset *= sensitivity;
-  yoffset *= sensitivity;
-
-  yaw += xoffset;
-  pitch += yoffset;
-
-  if (pitch > 89.0f)
-    pitch = 89.0f;
-  if (pitch < -89.0f)
-    pitch = -89.0f;
-
-  glm::vec3 direction;
-  direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-  direction.y = sin(glm::radians(pitch));
-  direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-  cameraFront = glm::normalize(direction);
+  camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void processInput(GLFWwindow *window) {
   static bool tab_pressed = false;
 
-  float cameraSpeed = 2.5f * deltaTime;
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+  auto keyPressed = [window](int key) {
+    return glfwGetKey(window, key) == GLFW_PRESS;
+  };
+
+  if (keyPressed(GLFW_KEY_ESCAPE))
     glfwSetWindowShouldClose(window, true);
 
-  if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+  if (keyPressed(GLFW_KEY_F))
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+  if (keyPressed(GLFW_KEY_G))
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+  if (keyPressed(GLFW_KEY_DOWN)) {
     if (mixval > 0.0)
       mixval -= 0.01;
   }
 
-  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+  if (keyPressed(GLFW_KEY_UP))
     if (mixval < 1.0)
       mixval += 0.01;
 
-  cameraSpeed = 0.05f;
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    cameraPos += cameraSpeed * cameraFront;
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    cameraPos -= cameraSpeed * cameraFront;
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    cameraPos -=
-        glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    cameraPos +=
-        glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+  if (keyPressed(GLFW_KEY_W))
+    camera.ProcessKeyboard(FORWARD, deltaTime);
+  if (keyPressed(GLFW_KEY_S))
+    camera.ProcessKeyboard(BACKWARD, deltaTime);
+  if (keyPressed(GLFW_KEY_A))
+    camera.ProcessKeyboard(LEFT, deltaTime);
+  if (keyPressed(GLFW_KEY_D))
+    camera.ProcessKeyboard(RIGHT, deltaTime);
 
-  if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS) {
+  if (keyPressed(GLFW_KEY_TAB)) {
     if (!tab_pressed) {
       if (cursor_enabled) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -155,6 +140,8 @@ float texCoords[] = {
 };
 
 int main() {
+  // Opengl Init
+
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -179,8 +166,10 @@ int main() {
 
   glEnable(GL_DEPTH_TEST);
 
+  // Shader
   Shader shader("src/shaders/vertex.glsl", "src/shaders/fragment.glsl");
 
+  // Objects
   unsigned int VAO;
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
@@ -207,8 +196,10 @@ int main() {
                   GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+  // global
   stbi_set_flip_vertically_on_load(true);
 
+  // textures
   int width, height, nrChannels;
   unsigned char *data =
       stbi_load("assets/container.jpg", &width, &height, &nrChannels, 0);
@@ -267,23 +258,19 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 view;
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    view = camera.GetViewMatrix();
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f),
                         glm::vec3(0.5f, 1.0f, 0.0f));
 
-    int modelLoc = glGetUniformLocation(shader.ID, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-    int viewLoc = glGetUniformLocation(shader.ID, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-    int projectionLoc = glGetUniformLocation(shader.ID, "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
     shader.use();
+
+    shader.setMat4("model", model);
+    shader.setMat4("view", view);
+    shader.setMat4("projection", projection);
     shader.setFloat("mixval", mixval);
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture1);
     glActiveTexture(GL_TEXTURE1);

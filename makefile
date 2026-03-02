@@ -1,14 +1,17 @@
-SRC=src
-BUILD=build
-CC=g++
-CMAINFLAGS=-Wall -Werror -lglfw3 -lGL -lwayland-client -lpthread -lXrandr -lXi -ldl -I./include
-COBJFLAGS=-I./include -Wall -Werror
+SRC = src
+BUILD = build
+CC = g++
+CMAINFLAGS = -Wall -Werror -lglfw3 -lGL -lwayland-client -lpthread -lXrandr -lXi -ldl -I./include
+COBJFLAGS = -I./include -Wall -Werror
 
-SRCS=$(wildcard $(SRC)/*.cpp)
-BUILDS=$(SRCS:$(SRC)/%.cpp=$(BUILD)/%.o)
-BUILDSDBG=$(SRCS:$(SRC)/%.cpp=$(BUILD)/%dbg.o)
+SRCS = $(wildcard $(SRC)/*.cpp)
+BUILDS = $(SRCS:$(SRC)/%.cpp=$(BUILD)/%.o)
+BUILDSDBG = $(SRCS:$(SRC)/%.cpp=$(BUILD)/%dbg.o)
 
-main: main.cpp $(BUILDS)
+INCLUDES = $(wildcard include/*.hpp)
+INCLUDES += $(wildcard include/*.h)
+
+main: main.cpp $(BUILDS) $(INCLUDES)
 	g++ main.cpp -o main $(BUILDS) $(CMAINFLAGS)
 
 $(BUILD)/%.o: $(SRC)/%.cpp

@@ -1,11 +1,11 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <glad/glad.h> // include glad to get all the required OpenGL headers
+#include <glad/glad.h>
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <string>
 
 class Shader {
@@ -27,6 +27,14 @@ public:
   void setMat4(const std::string &name, glm::mat4 value) const {
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE,
                        glm::value_ptr(value));
+  }
+  void setVec3(const std::string &name, glm::vec3 value) const {
+    glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1,
+                 glm::value_ptr(value));
+  }
+
+  void setVec3(const std::string &name, float v1, float v2, float v3) const {
+    glUniform3f(glGetUniformLocation(ID, name.c_str()), v1, v2, v3);
   }
 
 private:
