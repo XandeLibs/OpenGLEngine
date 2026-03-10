@@ -12,7 +12,7 @@ INCLUDES = $(wildcard include/*.hpp)
 INCLUDES += $(wildcard include/*.h)
 
 main: main.cpp $(BUILDS) $(INCLUDES)
-	g++ main.cpp -o main $(BUILDS) $(CMAINFLAGS)
+	g++ main.cpp -o bin/main $(BUILDS) $(CMAINFLAGS)
 
 $(BUILD)/%.o: $(SRC)/%.cpp
 	g++ -c $< -o $@ $(COBJFLAGS)
@@ -24,4 +24,4 @@ $(BUILD)/%dbg.o: $(SRC)/%.cpp
 	g++ -c $< -g -o $@ $(COBJFLAGS)
 
 clean:
-	rm -f build/*.o main
+	rm -f build/*.o bin/main
