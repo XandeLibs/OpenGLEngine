@@ -1,8 +1,10 @@
 SRC = src
 BUILD = build
-CC = g++
-CMAINFLAGS = -Wall -Werror -lglfw3 -lGL -lwayland-client -lpthread -lXrandr -lXi -ldl -I./include
-COBJFLAGS = -I./include -Wall -Werror
+CXX = g++
+CMAINFLAGS = -Wall -Werror -lglfw3 -lGL -lwayland-client -lpthread -lXrandr -lXi -ldl -I./include -std=c++20
+CDEBUGFLAGS = -fsanitize=address -fsanitize=leak -D_GLIBCXX_DEBUG -g -O0
+CRELEASEFLAGS = -O2
+COBJFLAGS = -I./include -Wall -Werror -std=c++20
 
 SRCS = $(wildcard $(SRC)/*.cpp)
 BUILDS = $(SRCS:$(SRC)/%.cpp=$(BUILD)/%.o)
@@ -11,17 +13,17 @@ BUILDSDBG = $(SRCS:$(SRC)/%.cpp=$(BUILD)/%dbg.o)
 INCLUDES = $(wildcard include/*.hpp)
 INCLUDES += $(wildcard include/*.h)
 
-main: main.cpp $(BUILDS) $(INCLUDES)
-	g++ main.cpp -o bin/main $(BUILDS) $(CMAINFLAGS)
+main: main.cpp $(BUILDS) $(INCLUDES) makefile
+	$(CXX) main.cpp -o bin/main $(BUILDS) $(CMAINFLAGS) $(CRELEASEFLAGS) -L./bin -lassimp -Wl,-rpath,'$$ORIGIN'
 
 $(BUILD)/%.o: $(SRC)/%.cpp
-	g++ -c $< -o $@ $(COBJFLAGS)
+	$(CXX) -c $< -o $@ $(COBJFLAGS) $(CRELEASEFLAGS)
 
 debug: main.cpp $(BUILDSDBG)
-	g++ main.cpp -g -o main $(BUILDSDBG) $(CMAINFLAGS)
+	$(CXX) main.cpp -g -o bin/main $(BUILDSDBG) $(CMAINFLAGS) $(CDEBUGFLAGS) -L./bin -lassimp -Wl,-rpath,'$$ORIGIN'
 
 $(BUILD)/%dbg.o: $(SRC)/%.cpp
-	g++ -c $< -g -o $@ $(COBJFLAGS)
+	$(CXX) -c $< -g -o $@ $(COBJFLAGS) $(CDEBUGFLAGS)
 
 clean:
 	rm -f build/*.o bin/main
