@@ -2,7 +2,7 @@ SRC = src
 BUILD = build
 CXX = g++
 CMAINFLAGS = -Wall -Werror -lglfw3 -lGL -lwayland-client -lpthread -lXrandr -lXi -ldl -I./include -std=c++20
-CDEBUGFLAGS = -fsanitize=address -fsanitize=leak -D_GLIBCXX_DEBUG -g -O0
+CDEBUGFLAGS = -D_GLIBCXX_DEBUG -g -O0
 CRELEASEFLAGS = -O2
 COBJFLAGS = -I./include -Wall -Werror -std=c++20
 
