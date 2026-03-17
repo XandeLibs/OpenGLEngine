@@ -26,6 +26,11 @@ float lastFrame = 0.0f;
 
 bool cursor_enabled = true;
 bool firstMouse = true;
+bool depthShader = false;
+
+enum renderType { normal, depth, border };
+
+renderType rendering = normal;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
@@ -100,6 +105,15 @@ void processInput(GLFWwindow *window) {
 
   if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
     tab_pressed = false;
+
+  if (keyPressed(GLFW_KEY_R))
+    rendering = depth;
+
+  if (keyPressed(GLFW_KEY_T))
+    rendering = normal;
+
+  if (keyPressed(GLFW_KEY_Y))
+    rendering = border;
 }
 
 glm::vec3 pointLightPositions[] = {
@@ -141,6 +155,9 @@ int main() {
 
   // Shader
   Shader shader("src/shaders/vertex.glsl", "src/shaders/fragment.glsl");
+  Shader shaderDepth("src/shaders/vertex.glsl", "src/shaders/depth.glsl");
+  Shader shaderBorder("src/shaders/vertexBorder.glsl",
+                      "src/shaders/border.glsl");
 
   Model ourModel("assets/backpack/backpack.obj");
 
@@ -160,8 +177,7 @@ int main() {
     lastFrame = currentFrame;
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // lightPos.x = cos(glfwGetTime()) * lightPos.x;
     // lightPos.y = sin(glfwGetTime()) * lightPos.y;
@@ -169,8 +185,15 @@ int main() {
     glm::mat4 view;
     view = camera.GetViewMatrix();
 
-    shader.use();
+    shaderDepth.use();
+    shaderDepth.setMat4("view", view);
+    shaderDepth.setMat4("projection", projection);
 
+    shaderBorder.use();
+    shaderBorder.setMat4("view", view);
+    shaderBorder.setMat4("projection", projection);
+
+    shader.use();
     shader.setMat4("view", view);
     shader.setMat4("projection", projection);
     shader.setVec3("viewPos", camera.Position);
@@ -226,12 +249,61 @@ int main() {
     shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
     shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
+    glm::mat4 newModel = glm::mat4(1.0f);
+
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
     shader.setMat4("model", model);
+    shaderDepth.use();
+    shaderDepth.setMat4("model", model);
 
-    ourModel.Draw(shader);
+    switch (rendering) {
+    case depth:
+      shaderDepth.use();
+      ourModel.Draw(shader);
+      break;
+    case border:
+      shader.use();
+
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+      glEnable(GL_STENCIL_TEST);
+
+      glEnable(GL_DEPTH_TEST);
+      glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+      glStencilFunc(GL_ALWAYS, 1, 0xFF);
+      glStencilMask(0xFF);
+
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+              GL_STENCIL_BUFFER_BIT);
+
+      ourModel.Draw(shader);
+
+      glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+      glStencilMask(0x00);
+      glDisable(GL_DEPTH_TEST);
+      shaderBorder.use();
+
+      newModel = glm::translate(newModel, glm::vec3(0.0f, 0.0f, 0.0f));
+      newModel = glm::scale(newModel, glm::vec3(1.1f, 1.1f, 1.1f));
+
+      shaderBorder.setMat4("model", model);
+
+      ourModel.Draw(shaderBorder);
+
+      glStencilMask(0xFF);
+      glStencilFunc(GL_ALWAYS, 1, 0xFF);
+      glEnable(GL_DEPTH_TEST);
+      glDisable(GL_STENCIL_TEST);
+
+      break;
+    case normal:
+      shader.use();
+      ourModel.Draw(shader);
+      break;
+    }
 
     glfwSwapBuffers(window);
     glfwPollEvents();
