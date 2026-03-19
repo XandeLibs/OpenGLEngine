@@ -125,8 +125,16 @@ glm::vec3 pointLightPositions[] = {
 
 int main() {
   // Opengl Init
+  const char *glfwError;
 
-  glfwInit();
+  glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+
+  if (!glfwInit()) {
+    std::cout << "glfw error: " << std::hex << glfwGetError(&glfwError);
+    std::cout << std::endl << glfwError << std::endl;
+    return -1;
+  }
+
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -134,7 +142,8 @@ int main() {
 
   GLFWwindow *window = glfwCreateWindow(800, 600, "GLFWApp", NULL, NULL);
   if (window == NULL) {
-    std::cout << "Failed to create GLFW window" << std::endl;
+    std::cout << "glfw error: " << std::hex << glfwGetError(&glfwError);
+    std::cout << std::endl << glfwError << std::endl;
     glfwTerminate();
     return -1;
   }
