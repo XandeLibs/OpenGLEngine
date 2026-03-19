@@ -1,29 +1,36 @@
 SRC = src
-BUILD = build
+PATH_RELEASE = build/release
+PATH_DEBUG = build/debug
 CXX = g++
-CMAINFLAGS = -Wall -Werror -lglfw -lGL -lpthread -lXrandr -lXi -ldl -I./include -std=c++20
-CDEBUGFLAGS = -D_GLIBCXX_DEBUG -g -O0
+CMAINFLAGS = -Wall -Werror -lglfw -lGL -lpthread -lXrandr -lXi -ldl -I./include -std=c++20 -L./lib -lassimp -Wl,-rpath,'$$ORIGIN/../../lib'
+CDEBUGFLAGS = -g -O0
 CRELEASEFLAGS = -O2
 COBJFLAGS = -I./include -Wall -Werror -std=c++20
 
 SRCS = $(wildcard $(SRC)/*.cpp)
-BUILDS = $(SRCS:$(SRC)/%.cpp=$(BUILD)/%.o)
-BUILDSDBG = $(SRCS:$(SRC)/%.cpp=$(BUILD)/%dbg.o)
+BUILDS = $(SRCS:$(SRC)/%.cpp=$(PATH_RELEASE)/%.o)
+BUILDSDBG = $(SRCS:$(SRC)/%.cpp=$(PATH_DEBUG)/%.o)
 
 INCLUDES = $(wildcard include/*.hpp)
 INCLUDES += $(wildcard include/*.h)
 
-main: main.cpp $(BUILDS) $(INCLUDES) makefile
-	$(CXX) main.cpp -o bin/main $(BUILDS) $(CMAINFLAGS) $(CRELEASEFLAGS) -L./bin -lassimp -Wl,-rpath,'$$ORIGIN'
+main: main.cpp $(BUILDS) $(INCLUDES) makefile release_folder
+	$(CXX) main.cpp -o $(PATH_RELEASE)/main $(BUILDS) $(CMAINFLAGS) $(CRELEASEFLAGS)
 
-$(BUILD)/%.o: $(SRC)/%.cpp
+$(PATH_RELEASE)/%.o: $(SRC)/%.cpp
 	$(CXX) -c $< -o $@ $(COBJFLAGS) $(CRELEASEFLAGS)
 
-debug: main.cpp $(BUILDSDBG)
-	$(CXX) main.cpp -g -o bin/main $(BUILDSDBG) $(CMAINFLAGS) $(CDEBUGFLAGS) -L./bin -lassimp -Wl,-rpath,'$$ORIGIN'
+release_folder:
+	mkdir -p $(PATH_RELEASE)
 
-$(BUILD)/%dbg.o: $(SRC)/%.cpp
+debug: main.cpp $(BUILDSDBG) $(INCLUDES) makefile debug_folder
+	$(CXX) main.cpp -g -o $(PATH_DEBUG)/main $(BUILDSDBG) $(CMAINFLAGS) $(CDEBUGFLAGS)
+
+$(PATH_DEBUG)/%.o: $(SRC)/%.cpp
 	$(CXX) -c $< -g -o $@ $(COBJFLAGS) $(CDEBUGFLAGS)
 
+debug_folder:
+	mkdir -p $(PATH_DEBUG)
+
 clean:
-	rm -f build/*.o bin/main
+	rm -rf $(PATH_DEBUG)/* $(PATH_RELEASE)/*
