@@ -13,6 +13,8 @@
 #include "shader.hpp"
 #include "stb_image.h"
 
+#include "UI.hpp"
+
 float mixval;
 
 Camera camera;
@@ -149,6 +151,8 @@ int main() {
   }
   glfwMakeContextCurrent(window);
 
+  UI::setup(window);
+
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
@@ -180,6 +184,8 @@ int main() {
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
+
+    UI::startLoop();
 
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -314,10 +320,13 @@ int main() {
       break;
     }
 
+    UI::endLoop();
+
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
 
+  UI::shutdown();
   glfwTerminate();
   return 0;
 }

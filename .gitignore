@@ -3,3 +3,4 @@ lib/
 assets/
 .clangd
 compile_flags.txt
+imgui.ini
