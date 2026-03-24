@@ -34,6 +34,8 @@ public:
   float MouseSensitivity;
   float Zoom;
 
+  glm::mat4 Projection;
+
   // constructor with vectors
   Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 5.0f),
          glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW,
@@ -44,6 +46,8 @@ public:
     WorldUp = up;
     Yaw = yaw;
     Pitch = pitch;
+    Projection =
+        glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
     updateCameraVectors();
   }
   // constructor with scalar values
@@ -55,6 +59,8 @@ public:
     WorldUp = glm::vec3(upX, upY, upZ);
     Yaw = yaw;
     Pitch = pitch;
+    Projection =
+        glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
     updateCameraVectors();
   }
 

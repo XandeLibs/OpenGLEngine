@@ -52,11 +52,13 @@ void showShaderWindow() {
 
   const char *types[] = {"normal", "depth", "border"};
 
-  if (ImGui::BeginCombo("Render Type", types[renderType])) {
-    for (int n = 0; n < RENDER_COUNT; n++) {
-      const bool is_selected = (renderType == n);
+  assert(IM_COUNTOF(types) == Scene::RENDER_COUNT);
+
+  if (ImGui::BeginCombo("Render Type", types[Scene::renderType])) {
+    for (int n = 0; n < Scene::RENDER_COUNT; n++) {
+      const bool is_selected = (Scene::renderType == n);
       if (ImGui::Selectable(types[n], is_selected))
-        renderType = (sceneRenderType)n;
+        Scene::renderType = (Scene::sceneRenderType)n;
 
       // Set the initial focus when opening the combo (scrolling + keyboard
       // navigation focus)

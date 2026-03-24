@@ -4,7 +4,9 @@
 #include <iostream>
 #include <sstream>
 
-Shader::Shader(const char *vertexPath, const char *fragmentPath) {
+Shader::Shader(std::string_view name, std::string_view vertexPath,
+               std::string_view fragmentPath) {
+  this->name = name;
   std::string vertexCode = shaderFromFile(vertexPath);
   std::string fragmentCode = shaderFromFile(fragmentPath);
 
@@ -59,13 +61,13 @@ void Shader::checkCompileErrors(unsigned int shader, std::string type) {
   }
 }
 
-std::string Shader::shaderFromFile(const char *shaderPath) {
+std::string Shader::shaderFromFile(std::string_view shaderPath) {
   std::string shaderCode;
   std::ifstream ShaderFile;
 
   ShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
   try {
-    ShaderFile.open(shaderPath);
+    ShaderFile.open(shaderPath.data());
     std::stringstream ShaderStream;
 
     ShaderStream << ShaderFile.rdbuf();

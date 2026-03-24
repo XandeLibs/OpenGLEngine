@@ -4,7 +4,7 @@ SOURCE_DIR := src
 RELEASE_DIR := build/release
 DEBUG_DIR := build/debug
 CXX := g++
-CXXFLAGS := -Wall -Werror -std=c++20
+CXXFLAGS := -Wall -Werror -std=c++20 -DGLFW_INCLUDE_NONE
 CXXFLAGS_MAIN := -Wall -Werror -lglfw -lGL -lpthread -lXrandr -lXi -ldl -std=c++20 -L./lib -lassimp -Wl,-rpath,'$$ORIGIN/../../lib'
 CXXFLAGS_DEBUG := -g -O0
 CXXFLAGS_RELEASE := -O2

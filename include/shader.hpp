@@ -9,11 +9,15 @@
 #include <iostream>
 #include <string>
 
+#include "camera.hpp"
+
 class Shader {
 public:
+  std::string name;
   unsigned int ID;
 
-  Shader(const char *vertexPath, const char *fragmentPath);
+  Shader(std::string_view name, std::string_view vertexPath,
+         std::string_view fragmentPath);
 
   void use() { glUseProgram(ID); }
   void setBool(const std::string &name, bool value) const {
@@ -72,9 +76,15 @@ public:
     glUniform3f(loc, v1, v2, v3);
   }
 
+  void updateTRS(Camera &camera) {
+    use();
+    setMat4("view", camera.GetViewMatrix());
+    setMat4("projection", camera.Projection);
+  }
+
 private:
   void checkCompileErrors(unsigned int shader, std::string type);
-  std::string shaderFromFile(const char *shaderPath);
+  std::string shaderFromFile(std::string_view shaderPath);
 };
 
 #endif
