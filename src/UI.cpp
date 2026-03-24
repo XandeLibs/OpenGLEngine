@@ -4,14 +4,19 @@
 #include "imgui/backends/imgui_impl_opengl3.h"
 #include "imgui/imgui.h"
 
+#include "scene.hpp"
+
 namespace UI {
+
+void showShaderWindow();
+
 void setup(GLFWwindow *window) {
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
 
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
   ImGui_ImplGlfw_InitForOpenGL(
@@ -24,7 +29,11 @@ void startLoop() {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
-  ImGui::ShowDemoWindow(); // Show demo window! :)
+  showShaderWindow();
+  float main_scale =
+      ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
+  ImGuiStyle &style = ImGui::GetStyle();
+  style.ScaleAllSizes(main_scale);
 }
 
 void endLoop() {
@@ -36,5 +45,27 @@ void shutdown() {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
+}
+
+void showShaderWindow() {
+  ImGui::Begin("Shaders");
+
+  const char *types[] = {"normal", "depth", "border"};
+
+  if (ImGui::BeginCombo("Render Type", types[renderType])) {
+    for (int n = 0; n < RENDER_COUNT; n++) {
+      const bool is_selected = (renderType == n);
+      if (ImGui::Selectable(types[n], is_selected))
+        renderType = (sceneRenderType)n;
+
+      // Set the initial focus when opening the combo (scrolling + keyboard
+      // navigation focus)
+      if (is_selected)
+        ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
+  }
+
+  ImGui::End();
 }
 } // namespace UI

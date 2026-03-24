@@ -9,11 +9,13 @@
 #include <iostream>
 
 #include "camera.hpp"
+#include "imgui.h"
 #include "model.hpp"
 #include "shader.hpp"
 #include "stb_image.h"
 
 #include "UI.hpp"
+#include "scene.hpp"
 
 float mixval;
 
@@ -30,29 +32,26 @@ bool cursor_enabled = true;
 bool firstMouse = true;
 bool depthShader = false;
 
-enum renderType { normal, depth, border };
-
-renderType rendering = normal;
-
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   static float lastX = 400, lastY = 300;
+  if (!cursor_enabled) {
+    if (firstMouse) {
+      lastX = xpos;
+      lastY = ypos;
+      firstMouse = false;
+    }
 
-  if (firstMouse) {
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
-    firstMouse = false;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
   }
-
-  float xoffset = xpos - lastX;
-  float yoffset = lastY - ypos;
-  lastX = xpos;
-  lastY = ypos;
-
-  camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void processInput(GLFWwindow *window) {
@@ -93,11 +92,11 @@ void processInput(GLFWwindow *window) {
     if (!tab_pressed) {
       if (cursor_enabled) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        glfwSetCursorPosCallback(window, mouse_callback);
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
         firstMouse = true;
       } else {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        glfwSetCursorPosCallback(window, nullptr);
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
       }
 
       cursor_enabled = !cursor_enabled;
@@ -107,15 +106,6 @@ void processInput(GLFWwindow *window) {
 
   if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
     tab_pressed = false;
-
-  if (keyPressed(GLFW_KEY_R))
-    rendering = depth;
-
-  if (keyPressed(GLFW_KEY_T))
-    rendering = normal;
-
-  if (keyPressed(GLFW_KEY_Y))
-    rendering = border;
 }
 
 glm::vec3 pointLightPositions[] = {
@@ -150,6 +140,7 @@ int main() {
     return -1;
   }
   glfwMakeContextCurrent(window);
+  glfwSetCursorPosCallback(window, mouse_callback);
 
   UI::setup(window);
 
@@ -273,7 +264,7 @@ int main() {
     shaderDepth.use();
     shaderDepth.setMat4("model", model);
 
-    switch (rendering) {
+    switch (renderType) {
     case depth:
       shaderDepth.use();
       ourModel.Draw(shader);
@@ -318,6 +309,9 @@ int main() {
       shader.use();
       ourModel.Draw(shader);
       break;
+    case RENDER_COUNT:
+      std::cerr << "invalid render type state: RENDER_COUNT\n";
+      glfwSetWindowShouldClose(window, true);
     }
 
     UI::endLoop();
