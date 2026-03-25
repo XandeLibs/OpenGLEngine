@@ -174,6 +174,14 @@ bool Scene::render() {
       m->Draw(*shaders["Default"]);
     }
     break;
+  case texture:
+    shaders["Texture"]->use();
+    shaders["Texture"]->updateTRS(camera);
+    for (auto m : models) {
+      shaders["Texture"]->setMat4("model", m->modelMatrix);
+      m->Draw(*shaders["Texture"]);
+    }
+    break;
   case RENDER_COUNT:
     std::cerr << "invalid render type state: RENDER_COUNT\n";
     return false;

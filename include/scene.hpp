@@ -8,7 +8,7 @@
 
 class Scene {
 public:
-  enum RenderType { normal, depth, border, RENDER_COUNT };
+  enum RenderType { normal, depth, texture, border, RENDER_COUNT };
 
   Scene();
 

@@ -50,7 +50,7 @@ void shutdown() {
 void showShaderWindow() {
   ImGui::Begin("Shaders");
 
-  const char *types[] = {"normal", "depth", "border"};
+  const char *types[] = {"normal", "depth", "texture", "border"};
 
   assert(IM_COUNTOF(types) == Scene::RENDER_COUNT);
 
