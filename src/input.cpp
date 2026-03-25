@@ -52,6 +52,10 @@ void processInput(GLFWwindow *window) {
     scene.camera.ProcessKeyboard(LEFT, scene.deltaTime);
   if (keyPressed(GLFW_KEY_D))
     scene.camera.ProcessKeyboard(RIGHT, scene.deltaTime);
+  if (keyPressed(GLFW_KEY_Q))
+    scene.camera.ProcessKeyboard(UP, scene.deltaTime);
+  if (keyPressed(GLFW_KEY_E))
+    scene.camera.ProcessKeyboard(DOWN, scene.deltaTime);
 
   if (keyPressed(GLFW_KEY_TAB)) {
     if (!tab_pressed) {

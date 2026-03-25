@@ -7,7 +7,7 @@
 
 // Defines several possible options for camera movement. Used as abstraction to
 // stay away from window-system specific input methods
-enum Camera_Movement { FORWARD, BACKWARD, LEFT, RIGHT };
+enum Camera_Movement { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN };
 
 // Default camera values
 const float YAW = -90.0f;
@@ -74,14 +74,26 @@ public:
   // systems)
   void ProcessKeyboard(Camera_Movement direction, float deltaTime) {
     float velocity = MovementSpeed * deltaTime;
-    if (direction == FORWARD)
+    switch (direction) {
+    case FORWARD:
       Position += Front * velocity;
-    if (direction == BACKWARD)
+      break;
+    case BACKWARD:
       Position -= Front * velocity;
-    if (direction == LEFT)
+      break;
+    case LEFT:
       Position -= Right * velocity;
-    if (direction == RIGHT)
+      break;
+    case RIGHT:
       Position += Right * velocity;
+      break;
+    case UP:
+      Position += Up * velocity;
+      break;
+    case DOWN:
+      Position -= Up * velocity;
+      break;
+    }
   }
 
   // processes input received from a mouse input system. Expects the offset
