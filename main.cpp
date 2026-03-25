@@ -7,6 +7,8 @@
 #include "UI.hpp"
 #include "scene.hpp"
 
+Scene scene;
+
 int main() {
   // Opengl Init
   const char *glfwError;
@@ -50,18 +52,19 @@ int main() {
 
   // Shader
 
-  Scene::addShader("Default", "vertex", "fragment");
-  Scene::addShader("Depth", "vertex", "depth");
-  Scene::addShader("Border", "vertexBorder", "border");
+  scene.addShader("Default", "vertex", "fragment");
+  scene.addShader("Depth", "vertex", "depth");
+  scene.addShader("Border", "vertexBorder", "border");
 
-  Scene::addModel("backpack/backpack.obj");
+  scene.addModel("backpack/backpack.obj");
+  scene.addModel("panel/panel.obj");
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
 
     UI::startLoop();
 
-    if (!Scene::render())
+    if (!scene.render())
       glfwSetWindowShouldClose(window, true);
 
     UI::endLoop();

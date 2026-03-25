@@ -2,22 +2,34 @@
 #define SCENE_H
 
 #include "camera.hpp"
+#include "model.hpp"
+#include <map>
 #include <string>
 
-namespace Scene {
+class Scene {
+public:
+  enum RenderType { normal, depth, border, RENDER_COUNT };
 
-enum sceneRenderType { normal, depth, border, RENDER_COUNT };
+  Scene();
 
-extern sceneRenderType renderType;
-extern Camera camera;
-extern float deltaTime;
-extern float lastFrame;
+  ~Scene();
 
-void addModel(const std::string &modelPath);
-void addShader(std::string_view name, std::string vertexPath,
-               std::string fragmentPath);
+  RenderType renderType;
+  Camera camera;
+  float deltaTime;
+  float lastFrame;
 
-bool render();
-} // namespace Scene
+  void addModel(const std::string &modelPath);
+  void addShader(std::string_view name, std::string vertexPath,
+                 std::string fragmentPath);
+
+  bool render();
+
+private:
+  std::vector<Model *> models;
+  std::map<std::string_view, Shader *> shaders;
+};
+
+extern Scene scene;
 
 #endif

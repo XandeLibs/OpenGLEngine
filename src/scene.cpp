@@ -1,20 +1,7 @@
 #include "scene.hpp"
 #include <GLFW/glfw3.h>
-#include <map>
 
-#include "model.hpp"
 #include "shader.hpp"
-
-namespace Scene {
-
-sceneRenderType renderType = normal;
-Camera camera;
-
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-
-std::vector<Model *> models;
-std::map<std::string_view, Shader *> shaders;
 
 glm::vec3 pointLightPositions[] = {
     glm::vec3(0.7f, 0.2f, 2.0f),    //
@@ -23,20 +10,34 @@ glm::vec3 pointLightPositions[] = {
     glm::vec3(0.0f, 0.0f, -3.0f)    //
 };
 
-void addShader(std::string_view name, std::string vertexPath,
-               std::string fragmentPath) {
+Scene::Scene() {
+  renderType = normal;
+  deltaTime = 0.0f;
+  lastFrame = 0.0f;
+}
+
+Scene::~Scene() {
+  for (auto m : models)
+    delete m;
+
+  for (auto s : shaders)
+    delete s.second;
+}
+
+void Scene::addShader(std::string_view name, std::string vertexPath,
+                      std::string fragmentPath) {
   vertexPath = "src/shaders/" + vertexPath + ".glsl";
   fragmentPath = "src/shaders/" + fragmentPath + ".glsl";
   Shader *shader = new Shader(name, vertexPath, fragmentPath);
   shaders.insert({shader->name, shader});
 }
 
-void addModel(const std::string &modelPath) {
+void Scene::addModel(const std::string &modelPath) {
   Model *model = new Model("assets/" + modelPath);
   models.push_back(model);
 }
 
-bool render() {
+bool Scene::render() {
 
   float currentFrame = glfwGetTime();
   Scene::deltaTime = currentFrame - Scene::lastFrame;
@@ -180,5 +181,3 @@ bool render() {
 
   return true;
 }
-
-} // namespace Scene
