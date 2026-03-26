@@ -55,7 +55,7 @@ int main() {
 
   stbi_set_flip_vertically_on_load(true);
 
-  scene.initializeQuad();
+  scene.initializeScene();
 
   // Shader
   scene.addShader("Default", "vertex", "fragment");
@@ -63,6 +63,7 @@ int main() {
   scene.addShader("Depth", "vertex", "depth");
   scene.addShader("Border", "vertexBorder", "border");
   scene.addShader("Screen", "vertScreen", "fragScreen");
+  scene.addShader("Skybox", "vertSkybox", "fragSkybox");
 
   scene.addModel("backpack/backpack.obj");
   scene.addModel("panel/panel.obj");

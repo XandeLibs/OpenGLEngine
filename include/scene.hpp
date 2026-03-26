@@ -19,7 +19,7 @@ public:
   float deltaTime;
   float lastFrame;
 
-  void initializeQuad();
+  void initializeScene();
 
   void addModel(const std::string &modelPath);
   void addShader(std::string_view name, std::string vertexPath,
@@ -32,10 +32,37 @@ public:
 private:
   std::vector<Model *> models;
 
+  vector<std::string> skyboxFaces = {"right.jpg",  "left.jpg",  "top.jpg",
+                                     "bottom.jpg", "front.jpg", "back.jpg"};
+
+  static constexpr float skyboxVertices[] = {
+      // positions
+      -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
+      1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
+
+      -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
+      -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
+
+      1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
+
+      -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
+
+      -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
+
+      -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
+      1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
+
   unsigned int quadVAO, quadVBO;
   unsigned int textureColorbuffer, framebuffer, renderbuffer;
 
+  unsigned int skyboxVAO, skyboxVBO;
+  unsigned int skyboxTexture;
+
   bool drawPostProcessing();
+  unsigned int loadCubemap(vector<std::string> faces);
 };
 
 extern Scene scene;
