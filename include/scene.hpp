@@ -25,9 +25,10 @@ public:
 
   bool render();
 
+  std::map<std::string_view, Shader *> shaders;
+
 private:
   std::vector<Model *> models;
-  std::map<std::string_view, Shader *> shaders;
 };
 
 extern Scene scene;
