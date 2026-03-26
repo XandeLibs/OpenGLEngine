@@ -24,6 +24,54 @@ Scene::~Scene() {
     delete s.second;
 }
 
+void Scene::initializeQuad() {
+
+  glGenRenderbuffers(1, &renderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+  glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+  glGenFramebuffers(1, &framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                            GL_RENDERBUFFER, renderbuffer);
+
+  glGenTextures(1, &textureColorbuffer);
+  glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE,
+               NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                         textureColorbuffer, 0);
+
+  const float quadVerts[] = {
+      -1.0f, 1.0f,  0.0f, 1.0f, //
+      -1.0f, -1.0f, 0.0f, 0.0f, //
+      1.0f,  -1.0f, 1.0f, 0.0f, //
+
+      -1.0f, 1.0f,  0.0f, 1.0f, //
+      1.0f,  -1.0f, 1.0f, 0.0f, //
+      1.0f,  1.0f,  1.0f, 1.0f  //
+  };
+
+  glGenVertexArrays(1, &quadVAO);
+  glBindVertexArray(quadVAO);
+
+  glGenBuffers(1, &quadVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(quadVerts), quadVerts, GL_STATIC_DRAW);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                        (void *)(2 * sizeof(float)));
+}
+
 void Scene::addShader(std::string_view name, std::string vertexPath,
                       std::string fragmentPath) {
   vertexPath = "src/shaders/" + vertexPath + ".glsl";
@@ -43,8 +91,10 @@ bool Scene::render() {
   Scene::deltaTime = currentFrame - Scene::lastFrame;
   Scene::lastFrame = currentFrame;
 
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  glEnable(GL_DEPTH_TEST);
 
   glm::mat4 model = glm::mat4(1.0f);
   glm::mat4 newModel = glm::mat4(1.0f);
@@ -186,6 +236,20 @@ bool Scene::render() {
     std::cerr << "invalid render type state: RENDER_COUNT\n";
     return false;
   }
+
+  return drawPostProcessing();
+}
+
+bool Scene::drawPostProcessing() {
+  glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  scene.shaders["Screen"]->use();
+  glBindVertexArray(quadVAO);
+  glDisable(GL_DEPTH_TEST);
+  glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
 
   return true;
 }

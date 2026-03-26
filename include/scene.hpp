@@ -19,6 +19,8 @@ public:
   float deltaTime;
   float lastFrame;
 
+  void initializeQuad();
+
   void addModel(const std::string &modelPath);
   void addShader(std::string_view name, std::string vertexPath,
                  std::string fragmentPath);
@@ -29,6 +31,11 @@ public:
 
 private:
   std::vector<Model *> models;
+
+  unsigned int quadVAO, quadVBO;
+  unsigned int textureColorbuffer, framebuffer, renderbuffer;
+
+  bool drawPostProcessing();
 };
 
 extern Scene scene;
