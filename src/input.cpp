@@ -8,6 +8,8 @@ bool firstMouse = true;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
+  scene.camera.Projection = glm::perspective(
+      glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
 }
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
