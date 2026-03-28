@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "camera.hpp"
+#include "error.hpp"
 #include "input.hpp"
 #include "model.hpp"
 
@@ -43,6 +44,10 @@ int main() {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
+
+  glEnable(GL_DEBUG_OUTPUT);
+  glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+  glDebugMessageCallback(glDebugOutput, nullptr);
 
   glViewport(0, 0, 800, 600);
 
