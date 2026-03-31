@@ -1,7 +1,10 @@
 #include "scene.hpp"
 #include <GLFW/glfw3.h>
 
+#include "UBO.hpp"
 #include "shader.hpp"
+
+Scene *scene = NULL;
 
 glm::vec3 pointLightPositions[] = {
     glm::vec3(0.7f, 0.2f, 2.0f),    //
@@ -10,10 +13,17 @@ glm::vec3 pointLightPositions[] = {
     glm::vec3(0.0f, 0.0f, -3.0f)    //
 };
 
-Scene::Scene() {
+Scene::Scene(std::string_view defaultVertexPath,
+             std::string_view defaultFragmentPath) {
+  addShader("Default", defaultVertexPath, defaultFragmentPath);
+  UBO *cameraUBO = new UBO(shaders["Default"]->ID, "Transforms");
+  camera = new Camera(cameraUBO);
+  auto ubo = camera->getUBO();
+  shaders["Default"]->bindUBO(ubo);
   renderType = normal;
   deltaTime = 0.0f;
   lastFrame = 0.0f;
+  initializeScene();
 }
 
 Scene::~Scene() {
@@ -22,6 +32,8 @@ Scene::~Scene() {
 
   for (auto s : shaders)
     delete s.second;
+
+  delete camera;
 }
 
 void Scene::initializeScene() {
@@ -46,16 +58,6 @@ void Scene::initializeScene() {
 
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                          textureColorbuffer, 0);
-
-  const float quadVerts[] = {
-      -1.0f, 1.0f,  0.0f, 1.0f, //
-      -1.0f, -1.0f, 0.0f, 0.0f, //
-      1.0f,  -1.0f, 1.0f, 0.0f, //
-
-      -1.0f, 1.0f,  0.0f, 1.0f, //
-      1.0f,  -1.0f, 1.0f, 0.0f, //
-      1.0f,  1.0f,  1.0f, 1.0f  //
-  };
 
   glGenVertexArrays(1, &quadVAO);
   glBindVertexArray(quadVAO);
@@ -85,11 +87,17 @@ void Scene::initializeScene() {
   skyboxTexture = loadCubemap(skyboxFaces);
 }
 
-void Scene::addShader(std::string_view name, std::string vertexPath,
-                      std::string fragmentPath) {
-  vertexPath = "src/shaders/" + vertexPath + ".glsl";
-  fragmentPath = "src/shaders/" + fragmentPath + ".glsl";
-  Shader *shader = new Shader(name, vertexPath, fragmentPath);
+void Scene::addShader(std::string_view name, std::string_view vertexPath,
+                      std::string_view fragmentPath) {
+  std::string vertexAssetPath = "src/shaders/";
+  vertexAssetPath.append(vertexPath);
+  vertexAssetPath.append(".glsl");
+
+  std::string fragmentAssetPath = "src/shaders/";
+  fragmentAssetPath.append(fragmentPath);
+  fragmentAssetPath.append(".glsl");
+
+  Shader *shader = new Shader(name, vertexAssetPath, fragmentAssetPath);
   shaders.insert({shader->name, shader});
 }
 
@@ -113,11 +121,8 @@ bool Scene::render() {
   glm::mat4 newModel = glm::mat4(1.0f);
 
   shaders["Default"]->use();
-  shaders["Default"]->setMat4("view", camera.GetViewMatrix());
-  shaders["Default"]->setMat4("projection", camera.Projection);
-  shaders["Default"]->setVec3("viewPos", camera.Position);
+  shaders["Default"]->setVec3("viewPos", camera->Position);
 
-  shaders["Default"]->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
   shaders["Default"]->setFloat("material.shininess", 32.0f);
 
   shaders["Default"]->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
@@ -161,8 +166,8 @@ bool Scene::render() {
   shaders["Default"]->setFloat("pointLights[3].linear", 0.09f);
   shaders["Default"]->setFloat("pointLights[3].quadratic", 0.032f);
   // spotLight
-  shaders["Default"]->setVec3("spotLight.position", Scene::camera.Position);
-  shaders["Default"]->setVec3("spotLight.direction", Scene::camera.Front);
+  shaders["Default"]->setVec3("spotLight.position", Scene::camera->Position);
+  shaders["Default"]->setVec3("spotLight.direction", Scene::camera->Front);
   shaders["Default"]->setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
   shaders["Default"]->setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
   shaders["Default"]->setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
@@ -177,7 +182,6 @@ bool Scene::render() {
   switch (renderType) {
   case depth:
     shaders["Depth"]->use();
-    shaders["Depth"]->updateTRS(camera);
     for (auto m : models) {
       shaders["Default"]->setMat4("model", m->modelMatrix);
       m->Draw(*shaders["Default"]);
@@ -196,7 +200,6 @@ bool Scene::render() {
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
     glStencilMask(0xFF);
 
-    shaders["Default"]->updateTRS(camera);
     for (auto m : models) {
       shaders["Default"]->setMat4("model", m->modelMatrix);
       m->Draw(*shaders["Default"]);
@@ -206,7 +209,6 @@ bool Scene::render() {
     glStencilMask(0x00);
     glDisable(GL_DEPTH_TEST);
     shaders["Border"]->use();
-    shaders["Border"]->updateTRS(camera);
 
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -229,7 +231,6 @@ bool Scene::render() {
     break;
   case normal:
     shaders["Default"]->use();
-    shaders["Default"]->updateTRS(camera);
     for (auto m : models) {
       shaders["Default"]->setMat4("model", m->modelMatrix);
       m->Draw(*shaders["Default"]);
@@ -237,7 +238,6 @@ bool Scene::render() {
     break;
   case texture:
     shaders["Texture"]->use();
-    shaders["Texture"]->updateTRS(camera);
     for (auto m : models) {
       shaders["Texture"]->setMat4("model", m->modelMatrix);
       m->Draw(*shaders["Texture"]);
@@ -250,10 +250,9 @@ bool Scene::render() {
 
   glDepthFunc(GL_LEQUAL);
   shaders["Skybox"]->use();
-  shaders["Skybox"]->setMat4("view",
-                             glm::mat4(glm::mat3(camera.GetViewMatrix())));
+  shaders["Skybox"]->setMat4("view", camera->View);
 
-  shaders["Skybox"]->setMat4("projection", camera.Projection);
+  shaders["Skybox"]->setMat4("projection", camera->Projection);
   glBindVertexArray(skyboxVAO);
   glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
   glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -267,7 +266,7 @@ bool Scene::drawPostProcessing() {
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  scene.shaders["Screen"]->use();
+  shaders["Screen"]->use();
   glBindVertexArray(quadVAO);
   glDisable(GL_DEPTH_TEST);
   glBindTexture(GL_TEXTURE_2D, textureColorbuffer);

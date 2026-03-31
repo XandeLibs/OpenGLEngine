@@ -9,7 +9,8 @@
 #include <iostream>
 #include <string>
 
-#include "camera.hpp"
+#include "UBO.hpp"
+#include "error.hpp"
 
 class Shader {
 public:
@@ -76,10 +77,10 @@ public:
     glUniform3f(loc, v1, v2, v3);
   }
 
-  void updateTRS(Camera &camera) {
-    use();
-    setMat4("view", camera.GetViewMatrix());
-    setMat4("projection", camera.Projection);
+  void bindUBO(const UBO *const UBO) {
+    auto name = UBO->getBlockName();
+    auto blockID = glGetUniformBlockIndex(ID, name.data());
+    glUniformBlockBinding(ID, blockID, UBO->getBindingPoint());
   }
 
 private:

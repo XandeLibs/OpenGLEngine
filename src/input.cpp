@@ -8,7 +8,7 @@ bool firstMouse = true;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
-  scene.camera.Projection = glm::perspective(
+  scene->camera->Projection = glm::perspective(
       glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
 }
 
@@ -26,7 +26,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     lastX = xpos;
     lastY = ypos;
 
-    scene.camera.ProcessMouseMovement(xoffset, yoffset);
+    scene->camera->ProcessMouseMovement(xoffset, yoffset);
   }
 }
 
@@ -47,17 +47,17 @@ void processInput(GLFWwindow *window) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   if (keyPressed(GLFW_KEY_W))
-    scene.camera.ProcessKeyboard(FORWARD, scene.deltaTime);
+    scene->camera->ProcessKeyboard(FORWARD, scene->deltaTime);
   if (keyPressed(GLFW_KEY_S))
-    scene.camera.ProcessKeyboard(BACKWARD, scene.deltaTime);
+    scene->camera->ProcessKeyboard(BACKWARD, scene->deltaTime);
   if (keyPressed(GLFW_KEY_A))
-    scene.camera.ProcessKeyboard(LEFT, scene.deltaTime);
+    scene->camera->ProcessKeyboard(LEFT, scene->deltaTime);
   if (keyPressed(GLFW_KEY_D))
-    scene.camera.ProcessKeyboard(RIGHT, scene.deltaTime);
+    scene->camera->ProcessKeyboard(RIGHT, scene->deltaTime);
   if (keyPressed(GLFW_KEY_Q))
-    scene.camera.ProcessKeyboard(UP, scene.deltaTime);
+    scene->camera->ProcessKeyboard(UP, scene->deltaTime);
   if (keyPressed(GLFW_KEY_E))
-    scene.camera.ProcessKeyboard(DOWN, scene.deltaTime);
+    scene->camera->ProcessKeyboard(DOWN, scene->deltaTime);
 
   if (keyPressed(GLFW_KEY_TAB)) {
     if (!tab_pressed) {

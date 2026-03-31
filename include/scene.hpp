@@ -10,20 +10,21 @@ class Scene {
 public:
   enum RenderType { normal, depth, texture, border, RENDER_COUNT };
 
-  Scene();
+  Scene(std::string_view defaultVertexPath,
+        std::string_view defaultFragmentPath);
 
   ~Scene();
 
   RenderType renderType;
-  Camera camera;
+  Camera *camera;
   float deltaTime;
   float lastFrame;
 
   void initializeScene();
 
   void addModel(const std::string &modelPath);
-  void addShader(std::string_view name, std::string vertexPath,
-                 std::string fragmentPath);
+  void addShader(std::string_view name, std::string_view vertexPath,
+                 std::string_view fragmentPath);
 
   bool render();
 
@@ -55,6 +56,16 @@ private:
       -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
       1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
 
+  static constexpr float quadVerts[] = {
+      -1.0f, 1.0f,  0.0f, 1.0f, //
+      -1.0f, -1.0f, 0.0f, 0.0f, //
+      1.0f,  -1.0f, 1.0f, 0.0f, //
+
+      -1.0f, 1.0f,  0.0f, 1.0f, //
+      1.0f,  -1.0f, 1.0f, 0.0f, //
+      1.0f,  1.0f,  1.0f, 1.0f  //
+  };
+
   unsigned int quadVAO, quadVBO;
   unsigned int textureColorbuffer, framebuffer, renderbuffer;
 
@@ -65,6 +76,6 @@ private:
   unsigned int loadCubemap(vector<std::string> faces);
 };
 
-extern Scene scene;
+extern Scene *scene;
 
 #endif

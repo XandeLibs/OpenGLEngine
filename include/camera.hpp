@@ -1,6 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include "UBO.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -34,14 +36,16 @@ public:
   float MouseSensitivity;
   float Zoom;
 
-  glm::mat4 Projection;
+  glm::mat4 Projection, View;
+
+  const UBO *const getUBO() { return cameraUBO; }
 
   // constructor with vectors
-  Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 5.0f),
+  Camera(UBO *cameraUBO, glm::vec3 position = glm::vec3(0.0f, 0.0f, 5.0f),
          glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW,
          float pitch = PITCH)
       : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED),
-        MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
+        MouseSensitivity(SENSITIVITY), Zoom(ZOOM), cameraUBO(cameraUBO) {
     Position = position;
     WorldUp = up;
     Yaw = yaw;
@@ -49,12 +53,13 @@ public:
     Projection =
         glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
     updateCameraVectors();
+    this->cameraUBO->update(1, glm::value_ptr(Projection));
   }
   // constructor with scalar values
-  Camera(float posX, float posY, float posZ, float upX, float upY, float upZ,
-         float yaw, float pitch)
+  Camera(UBO *cameraUBO, float posX, float posY, float posZ, float upX,
+         float upY, float upZ, float yaw, float pitch)
       : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED),
-        MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
+        MouseSensitivity(SENSITIVITY), Zoom(ZOOM), cameraUBO(cameraUBO) {
     Position = glm::vec3(posX, posY, posZ);
     WorldUp = glm::vec3(upX, upY, upZ);
     Yaw = yaw;
@@ -62,6 +67,7 @@ public:
     Projection =
         glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
     updateCameraVectors();
+    this->cameraUBO->update(1, glm::value_ptr(Projection));
   }
 
   // returns the view matrix calculated using Euler Angles and the LookAt Matrix
@@ -94,6 +100,8 @@ public:
       Position -= Up * velocity;
       break;
     }
+    View = glm::lookAt(Position, Position + Front, Up);
+    cameraUBO->update(0, glm::value_ptr(View));
   }
 
   // processes input received from a mouse input system. Expects the offset
@@ -129,6 +137,7 @@ public:
   }
 
 private:
+  UBO *cameraUBO;
   // calculates the front vector from the Camera's (updated) Euler Angles
   void updateCameraVectors() {
     // calculate the new Front vector
@@ -143,6 +152,9 @@ private:
                           // closer to 0 the more you look up or down which
                           // results in slower movement.
     Up = glm::normalize(glm::cross(Right, Front));
+
+    View = glm::lookAt(Position, Position + Front, Up);
+    cameraUBO->update(0, glm::value_ptr(View));
   }
 };
 

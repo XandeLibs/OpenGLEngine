@@ -1,14 +1,11 @@
 #include <iostream>
 
-#include "camera.hpp"
 #include "error.hpp"
 #include "input.hpp"
 #include "model.hpp"
 
 #include "UI.hpp"
 #include "scene.hpp"
-
-Scene scene;
 
 int main() {
   // Opengl Init
@@ -60,25 +57,29 @@ int main() {
 
   stbi_set_flip_vertically_on_load(true);
 
-  scene.initializeScene();
+  scene = new Scene("vertex", "fragment");
 
   // Shader
-  scene.addShader("Default", "vertex", "fragment");
-  scene.addShader("Texture", "vertex", "fragtex");
-  scene.addShader("Depth", "vertex", "depth");
-  scene.addShader("Border", "vertexBorder", "border");
-  scene.addShader("Screen", "vertScreen", "fragScreen");
-  scene.addShader("Skybox", "vertSkybox", "fragSkybox");
+  scene->addShader("Texture", "vertex", "fragtex");
+  scene->shaders["Texture"]->bindUBO(scene->camera->getUBO());
+  scene->addShader("Depth", "vertex", "depth");
+  scene->shaders["Depth"]->bindUBO(scene->camera->getUBO());
 
-  scene.addModel("backpack/backpack.obj");
-  scene.addModel("panel/panel.obj");
+  scene->addShader("Border", "vertexBorder", "border");
+  scene->shaders["Border"]->bindUBO(scene->camera->getUBO());
+  scene->addShader("Screen", "vertScreen", "fragScreen");
+  scene->addShader("Skybox", "vertSkybox", "fragSkybox");
+  // scene->shaders["Skybox"]->bindUBO(scene->camera->getUBO());
+
+  scene->addModel("backpack/backpack.obj");
+  scene->addModel("panel/panel.obj");
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
 
     UI::startLoop();
 
-    if (!scene.render())
+    if (!scene->render())
       glfwSetWindowShouldClose(window, true);
 
     UI::endLoop();
@@ -87,6 +88,7 @@ int main() {
     glfwPollEvents();
   }
 
+  delete scene;
   UI::shutdown();
   glfwTerminate();
   return 0;
