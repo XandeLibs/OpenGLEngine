@@ -1,6 +1,7 @@
 #ifndef SHADER_H
 #define SHADER_H
 
+#include <algorithm>
 #include <glad/glad.h>
 
 #include <glm/glm.hpp>
@@ -17,65 +18,47 @@ public:
   std::string name;
   unsigned int ID;
 
+  template <size_t N> struct StringLiteral {
+    char value[N];
+    constexpr StringLiteral(const char (&str)[N]) {
+      std::ranges::copy_n(str, N, value);
+    }
+  };
+
+  template <StringLiteral Name> void update(bool value) {
+    static GLint loc = getUniformLoc(Name.value);
+    glProgramUniform1f(ID, loc, (int)value);
+  };
+
+  template <StringLiteral Name> void update(int value) {
+    static GLint loc = getUniformLoc(Name.value);
+    glProgramUniform1i(ID, loc, value);
+  };
+
+  template <StringLiteral Name> void update(float value) {
+    static GLint loc = getUniformLoc(Name.value);
+    glProgramUniform1f(ID, loc, value);
+  };
+
+  template <StringLiteral Name> void update(glm::mat4 value) {
+    static GLint loc = getUniformLoc(Name.value);
+    glProgramUniformMatrix4fv(ID, loc, 1, GL_FALSE, glm::value_ptr(value));
+  };
+
+  template <StringLiteral Name> void update(glm::vec3 value) {
+    static GLint loc = getUniformLoc(Name.value);
+    glProgramUniform3fv(ID, loc, 1, glm::value_ptr(value));
+  };
+
+  template <StringLiteral Name> void update(float v1, float v2, float v3) {
+    static GLint loc = getUniformLoc(Name.value);
+    glProgramUniform3f(ID, loc, v1, v2, v3);
+  };
+
   Shader(std::string_view name, std::string_view vertexPath,
          std::string_view fragmentPath);
 
   void use() { glUseProgram(ID); }
-  void setBool(const std::string &name, bool value) const {
-    auto loc = glGetUniformLocation(ID, name.c_str());
-    if (loc == -1) {
-      std::cerr << "Uniform not found\n"
-                << __LINE__ << "\n name: " << name << "\n";
-      abort();
-    }
-    glUniform1i(loc, (int)value);
-  }
-  void setInt(const std::string &name, int value) const {
-    auto loc = glGetUniformLocation(ID, name.c_str());
-    if (loc == -1) {
-      std::cerr << "Uniform not found\n"
-                << __LINE__ << "\n name: " << name << "\n";
-      abort();
-    }
-    glUniform1i(loc, value);
-  }
-  void setFloat(const std::string &name, float value) const {
-    auto loc = glGetUniformLocation(ID, name.c_str());
-    if (loc == -1) {
-      std::cerr << "Uniform not found\n"
-                << __LINE__ << "\n name: " << name << "\n";
-      abort();
-    }
-    glUniform1f(loc, value);
-  }
-  void setMat4(const std::string &name, glm::mat4 value) const {
-    auto loc = glGetUniformLocation(ID, name.c_str());
-    if (loc == -1) {
-      std::cerr << "Uniform not found\n"
-                << __LINE__ << "\n name: " << name << "\n";
-      abort();
-    }
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
-  }
-  void setVec3(const std::string &name, glm::vec3 value) const {
-    auto loc = glGetUniformLocation(ID, name.c_str());
-    if (loc == -1) {
-      std::cerr << "Uniform not found\n"
-                << __LINE__ << "\n name: " << name << "\n";
-      abort();
-    }
-    glUniform3fv(loc, 1, glm::value_ptr(value));
-  }
-
-  void setVec3(const std::string &name, float v1, float v2, float v3) const {
-    auto loc = glGetUniformLocation(ID, name.c_str());
-    if (loc == -1) {
-      std::cerr << "Uniform not found\n"
-                << __LINE__ << "\n name: " << name << "\n";
-      abort();
-    }
-    glUniform3f(loc, v1, v2, v3);
-  }
 
   void bindUBO(const UBO *const UBO) {
     auto name = UBO->getBlockName();
@@ -84,6 +67,16 @@ public:
   }
 
 private:
+  GLint getUniformLoc(std::string_view name) {
+    auto loc = glGetUniformLocation(ID, name.data());
+    if (loc == -1) {
+      std::cerr << "Uniform not found\n"
+                << __LINE__ << "\n name: " << name << "\n";
+      abort();
+    }
+    return loc;
+  };
+
   void checkCompileErrors(unsigned int shader, std::string type);
   std::string shaderFromFile(std::string_view shaderPath);
 };

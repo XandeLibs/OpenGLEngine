@@ -121,70 +121,65 @@ bool Scene::render() {
   glm::mat4 newModel = glm::mat4(1.0f);
 
   shaders["Default"]->use();
-  shaders["Default"]->setVec3("viewPos", camera->Position);
+  shaders["Default"]->update<"viewPos">(camera->Position);
 
-  shaders["Default"]->setFloat("material.shininess", 32.0f);
+  shaders["Default"]->update<"material.shininess">(32.0f);
 
-  shaders["Default"]->setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-  shaders["Default"]->setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-  shaders["Default"]->setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-  shaders["Default"]->setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+  shaders["Default"]->update<"dirLight.direction">(-0.2f, -1.0f, -0.3f);
+  shaders["Default"]->update<"dirLight.ambient">(0.05f, 0.05f, 0.05f);
+  shaders["Default"]->update<"dirLight.diffuse">(0.4f, 0.4f, 0.4f);
+  shaders["Default"]->update<"dirLight.specular">(0.5f, 0.5f, 0.5f);
   // point light 1
-  shaders["Default"]->setVec3("pointLights[0].position",
-                              pointLightPositions[0]);
-  shaders["Default"]->setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-  shaders["Default"]->setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-  shaders["Default"]->setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-  shaders["Default"]->setFloat("pointLights[0].constant", 1.0f);
-  shaders["Default"]->setFloat("pointLights[0].linear", 0.09f);
-  shaders["Default"]->setFloat("pointLights[0].quadratic", 0.032f);
+  shaders["Default"]->update<"pointLights[0].position">(pointLightPositions[0]);
+  shaders["Default"]->update<"pointLights[0].ambient">(0.05f, 0.05f, 0.05f);
+  shaders["Default"]->update<"pointLights[0].diffuse">(0.8f, 0.8f, 0.8f);
+  shaders["Default"]->update<"pointLights[0].specular">(1.0f, 1.0f, 1.0f);
+  shaders["Default"]->update<"pointLights[0].constant">(1.0f);
+  shaders["Default"]->update<"pointLights[0].linear">(0.09f);
+  shaders["Default"]->update<"pointLights[0].quadratic">(0.032f);
   // point light 2
-  shaders["Default"]->setVec3("pointLights[1].position",
-                              pointLightPositions[1]);
-  shaders["Default"]->setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-  shaders["Default"]->setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
-  shaders["Default"]->setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
-  shaders["Default"]->setFloat("pointLights[1].constant", 1.0f);
-  shaders["Default"]->setFloat("pointLights[1].linear", 0.09f);
-  shaders["Default"]->setFloat("pointLights[1].quadratic", 0.032f);
+  shaders["Default"]->update<"pointLights[1].position">(pointLightPositions[1]);
+  shaders["Default"]->update<"pointLights[1].ambient">(0.05f, 0.05f, 0.05f);
+  shaders["Default"]->update<"pointLights[1].diffuse">(0.8f, 0.8f, 0.8f);
+  shaders["Default"]->update<"pointLights[1].specular">(1.0f, 1.0f, 1.0f);
+  shaders["Default"]->update<"pointLights[1].constant">(1.0f);
+  shaders["Default"]->update<"pointLights[1].linear">(0.09f);
+  shaders["Default"]->update<"pointLights[1].quadratic">(0.032f);
   // point light 3
-  shaders["Default"]->setVec3("pointLights[2].position",
-                              pointLightPositions[2]);
-  shaders["Default"]->setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-  shaders["Default"]->setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
-  shaders["Default"]->setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
-  shaders["Default"]->setFloat("pointLights[2].constant", 1.0f);
-  shaders["Default"]->setFloat("pointLights[2].linear", 0.09f);
-  shaders["Default"]->setFloat("pointLights[2].quadratic", 0.032f);
+  shaders["Default"]->update<"pointLights[2].position">(pointLightPositions[2]);
+  shaders["Default"]->update<"pointLights[2].ambient">(0.05f, 0.05f, 0.05f);
+  shaders["Default"]->update<"pointLights[2].diffuse">(0.8f, 0.8f, 0.8f);
+  shaders["Default"]->update<"pointLights[2].specular">(1.0f, 1.0f, 1.0f);
+  shaders["Default"]->update<"pointLights[2].constant">(1.0f);
+  shaders["Default"]->update<"pointLights[2].linear">(0.09f);
+  shaders["Default"]->update<"pointLights[2].quadratic">(0.032f);
   // point light 4
-  shaders["Default"]->setVec3("pointLights[3].position",
-                              pointLightPositions[3]);
-  shaders["Default"]->setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-  shaders["Default"]->setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
-  shaders["Default"]->setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
-  shaders["Default"]->setFloat("pointLights[3].constant", 1.0f);
-  shaders["Default"]->setFloat("pointLights[3].linear", 0.09f);
-  shaders["Default"]->setFloat("pointLights[3].quadratic", 0.032f);
+  shaders["Default"]->update<"pointLights[3].position">(pointLightPositions[3]);
+  shaders["Default"]->update<"pointLights[3].ambient">(0.05f, 0.05f, 0.05f);
+  shaders["Default"]->update<"pointLights[3].diffuse">(0.8f, 0.8f, 0.8f);
+  shaders["Default"]->update<"pointLights[3].specular">(1.0f, 1.0f, 1.0f);
+  shaders["Default"]->update<"pointLights[3].constant">(1.0f);
+  shaders["Default"]->update<"pointLights[3].linear">(0.09f);
+  shaders["Default"]->update<"pointLights[3].quadratic">(0.032f);
   // spotLight
-  shaders["Default"]->setVec3("spotLight.position", Scene::camera->Position);
-  shaders["Default"]->setVec3("spotLight.direction", Scene::camera->Front);
-  shaders["Default"]->setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-  shaders["Default"]->setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-  shaders["Default"]->setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-  shaders["Default"]->setFloat("spotLight.constant", 1.0f);
-  shaders["Default"]->setFloat("spotLight.linear", 0.09f);
-  shaders["Default"]->setFloat("spotLight.quadratic", 0.032f);
-  shaders["Default"]->setFloat("spotLight.cutOff",
-                               glm::cos(glm::radians(12.5f)));
-  shaders["Default"]->setFloat("spotLight.outerCutOff",
-                               glm::cos(glm::radians(15.0f)));
+  shaders["Default"]->update<"spotLight.position">(Scene::camera->Position);
+  shaders["Default"]->update<"spotLight.direction">(Scene::camera->Front);
+  shaders["Default"]->update<"spotLight.ambient">(0.0f, 0.0f, 0.0f);
+  shaders["Default"]->update<"spotLight.diffuse">(1.0f, 1.0f, 1.0f);
+  shaders["Default"]->update<"spotLight.specular">(1.0f, 1.0f, 1.0f);
+  shaders["Default"]->update<"spotLight.constant">(1.0f);
+  shaders["Default"]->update<"spotLight.linear">(0.09f);
+  shaders["Default"]->update<"spotLight.quadratic">(0.032f);
+  shaders["Default"]->update<"spotLight.cutOff">(glm::cos(glm::radians(12.5f)));
+  shaders["Default"]->update<"spotLight.outerCutOff">(
+      glm::cos(glm::radians(15.0f)));
 
   switch (renderType) {
   case depth:
     shaders["Depth"]->use();
     for (auto m : models) {
-      shaders["Default"]->setMat4("model", m->modelMatrix);
-      m->Draw(*shaders["Default"]);
+      shaders["Depth"]->update<"model">(m->modelMatrix);
+      m->Draw(*shaders["Depth"]);
     }
     break;
   case border:
@@ -201,7 +196,7 @@ bool Scene::render() {
     glStencilMask(0xFF);
 
     for (auto m : models) {
-      shaders["Default"]->setMat4("model", m->modelMatrix);
+      shaders["Default"]->update<"model">(m->modelMatrix);
       m->Draw(*shaders["Default"]);
     }
 
@@ -216,10 +211,10 @@ bool Scene::render() {
     newModel = glm::translate(newModel, glm::vec3(0.0f, 0.0f, 0.0f));
     newModel = glm::scale(newModel, glm::vec3(1.1f, 1.1f, 1.1f));
 
-    shaders["Border"]->setMat4("model", model);
+    shaders["Border"]->update<"model">(model);
 
     for (auto m : models) {
-      shaders["Default"]->setMat4("model", m->modelMatrix);
+      shaders["Default"]->update<"model">(m->modelMatrix);
       m->Draw(*shaders["Default"]);
     }
 
@@ -232,14 +227,14 @@ bool Scene::render() {
   case normal:
     shaders["Default"]->use();
     for (auto m : models) {
-      shaders["Default"]->setMat4("model", m->modelMatrix);
+      shaders["Default"]->update<"model">(m->modelMatrix);
       m->Draw(*shaders["Default"]);
     }
     break;
   case texture:
     shaders["Texture"]->use();
     for (auto m : models) {
-      shaders["Texture"]->setMat4("model", m->modelMatrix);
+      shaders["Texture"]->update<"model">(m->modelMatrix);
       m->Draw(*shaders["Texture"]);
     }
     break;
@@ -250,9 +245,9 @@ bool Scene::render() {
 
   glDepthFunc(GL_LEQUAL);
   shaders["Skybox"]->use();
-  shaders["Skybox"]->setMat4("view", camera->View);
+  shaders["Skybox"]->update<"view">(camera->View);
 
-  shaders["Skybox"]->setMat4("projection", camera->Projection);
+  shaders["Skybox"]->update<"projection">(camera->Projection);
   glBindVertexArray(skyboxVAO);
   glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
   glDrawArrays(GL_TRIANGLES, 0, 36);
