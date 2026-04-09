@@ -16,7 +16,6 @@ struct DirLight {
     vec3 diffuse;
     vec3 specular;
 };
-uniform DirLight dirLight;
 
 struct PointLight {
     vec3 position;
@@ -30,7 +29,6 @@ struct PointLight {
     vec3 specular;
 };
 #define NR_POINT_LIGHTS 4
-uniform PointLight pointLights[NR_POINT_LIGHTS];
 
 struct SpotLight {
     vec3 position;
@@ -46,7 +44,12 @@ struct SpotLight {
     vec3 diffuse;
     vec3 specular;
 };
-uniform SpotLight spotLight;
+
+uniform Lights {
+    DirLight dirLight;
+    PointLight pointLights[NR_POINT_LIGHTS];
+    SpotLight spotLight;
+};
 
 uniform vec3 viewPos;
 

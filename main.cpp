@@ -57,9 +57,12 @@ int main() {
 
   stbi_set_flip_vertically_on_load(true);
 
+  // Scene and Shader
   scene = new Scene("vertex", "fragment");
 
-  // Shader
+  scene->createUBO(*scene->shaders["Default"], "Lights");
+  scene->shaders["Default"]->bindUBO(scene->UBOs["Lights"]);
+
   scene->addShader("Texture", "vertex", "fragtex");
   scene->shaders["Texture"]->bindUBO(scene->camera->getUBO());
   scene->addShader("Depth", "vertex", "depth");

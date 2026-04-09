@@ -1,7 +1,6 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <algorithm>
 #include <glad/glad.h>
 
 #include <glm/glm.hpp>
@@ -17,13 +16,6 @@ class Shader {
 public:
   std::string name;
   unsigned int ID;
-
-  template <size_t N> struct StringLiteral {
-    char value[N];
-    constexpr StringLiteral(const char (&str)[N]) {
-      std::ranges::copy_n(str, N, value);
-    }
-  };
 
   template <StringLiteral Name> void update(bool value) {
     static GLint loc = getUniformLoc(Name.value);

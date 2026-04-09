@@ -19,6 +19,7 @@ public:
   Camera *camera;
   float deltaTime;
   float lastFrame;
+  map<string_view, UBO *> UBOs;
 
   void initializeScene();
 
@@ -27,6 +28,8 @@ public:
                  std::string_view fragmentPath);
 
   bool render();
+
+  void createUBO(Shader &shader, string_view blockName);
 
   std::map<std::string_view, Shader *> shaders;
 

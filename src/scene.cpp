@@ -121,57 +121,73 @@ bool Scene::render() {
   glm::mat4 newModel = glm::mat4(1.0f);
 
   shaders["Default"]->use();
+
+  auto lightsUBO = scene->UBOs["Lights"];
+
+  lightsUBO->setUBOMember<"dirLight.direction">(glm::vec3(-0.2f, -1.0f, -0.3f));
+
   shaders["Default"]->update<"viewPos">(camera->Position);
 
   shaders["Default"]->update<"material.shininess">(32.0f);
 
-  shaders["Default"]->update<"dirLight.direction">(-0.2f, -1.0f, -0.3f);
-  shaders["Default"]->update<"dirLight.ambient">(0.05f, 0.05f, 0.05f);
-  shaders["Default"]->update<"dirLight.diffuse">(0.4f, 0.4f, 0.4f);
-  shaders["Default"]->update<"dirLight.specular">(0.5f, 0.5f, 0.5f);
+  lightsUBO->setUBOMember<"dirLight.ambient">(glm::vec3(0.05f, 0.05f, 0.05f));
+  lightsUBO->setUBOMember<"dirLight.diffuse">(glm::vec3(0.4f, 0.4f, 0.4f));
+  lightsUBO->setUBOMember<"dirLight.specular">(glm::vec3(0.5f, 0.5f, 0.5f));
   // point light 1
-  shaders["Default"]->update<"pointLights[0].position">(pointLightPositions[0]);
-  shaders["Default"]->update<"pointLights[0].ambient">(0.05f, 0.05f, 0.05f);
-  shaders["Default"]->update<"pointLights[0].diffuse">(0.8f, 0.8f, 0.8f);
-  shaders["Default"]->update<"pointLights[0].specular">(1.0f, 1.0f, 1.0f);
-  shaders["Default"]->update<"pointLights[0].constant">(1.0f);
-  shaders["Default"]->update<"pointLights[0].linear">(0.09f);
-  shaders["Default"]->update<"pointLights[0].quadratic">(0.032f);
+  lightsUBO->setUBOMember<"pointLights[0].position">(pointLightPositions[0]);
+  lightsUBO->setUBOMember<"pointLights[0].ambient">(
+      glm::vec3(0.05f, 0.05f, 0.05f));
+  lightsUBO->setUBOMember<"pointLights[0].diffuse">(
+      glm::vec3(0.8f, 0.8f, 0.8f));
+  lightsUBO->setUBOMember<"pointLights[0].specular">(
+      glm::vec3(1.0f, 1.0f, 1.0f));
+  lightsUBO->setUBOMember<"pointLights[0].constant">(1.0f);
+  lightsUBO->setUBOMember<"pointLights[0].linear">(0.09f);
+  lightsUBO->setUBOMember<"pointLights[0].quadratic">(0.032f);
   // point light 2
-  shaders["Default"]->update<"pointLights[1].position">(pointLightPositions[1]);
-  shaders["Default"]->update<"pointLights[1].ambient">(0.05f, 0.05f, 0.05f);
-  shaders["Default"]->update<"pointLights[1].diffuse">(0.8f, 0.8f, 0.8f);
-  shaders["Default"]->update<"pointLights[1].specular">(1.0f, 1.0f, 1.0f);
-  shaders["Default"]->update<"pointLights[1].constant">(1.0f);
-  shaders["Default"]->update<"pointLights[1].linear">(0.09f);
-  shaders["Default"]->update<"pointLights[1].quadratic">(0.032f);
+  lightsUBO->setUBOMember<"pointLights[1].position">(pointLightPositions[1]);
+  lightsUBO->setUBOMember<"pointLights[1].ambient">(
+      glm::vec3(0.05f, 0.05f, 0.05f));
+  lightsUBO->setUBOMember<"pointLights[1].diffuse">(
+      glm::vec3(0.8f, 0.8f, 0.8f));
+  lightsUBO->setUBOMember<"pointLights[1].specular">(
+      glm::vec3(1.0f, 1.0f, 1.0f));
+  lightsUBO->setUBOMember<"pointLights[1].constant">(1.0f);
+  lightsUBO->setUBOMember<"pointLights[1].linear">(0.09f);
+  lightsUBO->setUBOMember<"pointLights[1].quadratic">(0.032f);
   // point light 3
-  shaders["Default"]->update<"pointLights[2].position">(pointLightPositions[2]);
-  shaders["Default"]->update<"pointLights[2].ambient">(0.05f, 0.05f, 0.05f);
-  shaders["Default"]->update<"pointLights[2].diffuse">(0.8f, 0.8f, 0.8f);
-  shaders["Default"]->update<"pointLights[2].specular">(1.0f, 1.0f, 1.0f);
-  shaders["Default"]->update<"pointLights[2].constant">(1.0f);
-  shaders["Default"]->update<"pointLights[2].linear">(0.09f);
-  shaders["Default"]->update<"pointLights[2].quadratic">(0.032f);
+  lightsUBO->setUBOMember<"pointLights[2].position">(pointLightPositions[2]);
+  lightsUBO->setUBOMember<"pointLights[2].ambient">(
+      glm::vec3(0.05f, 0.05f, 0.05f));
+  lightsUBO->setUBOMember<"pointLights[2].diffuse">(
+      glm::vec3(0.8f, 0.8f, 0.8f));
+  lightsUBO->setUBOMember<"pointLights[2].specular">(
+      glm::vec3(1.0f, 1.0f, 1.0f));
+  lightsUBO->setUBOMember<"pointLights[2].constant">(1.0f);
+  lightsUBO->setUBOMember<"pointLights[2].linear">(0.09f);
+  lightsUBO->setUBOMember<"pointLights[2].quadratic">(0.032f);
   // point light 4
-  shaders["Default"]->update<"pointLights[3].position">(pointLightPositions[3]);
-  shaders["Default"]->update<"pointLights[3].ambient">(0.05f, 0.05f, 0.05f);
-  shaders["Default"]->update<"pointLights[3].diffuse">(0.8f, 0.8f, 0.8f);
-  shaders["Default"]->update<"pointLights[3].specular">(1.0f, 1.0f, 1.0f);
-  shaders["Default"]->update<"pointLights[3].constant">(1.0f);
-  shaders["Default"]->update<"pointLights[3].linear">(0.09f);
-  shaders["Default"]->update<"pointLights[3].quadratic">(0.032f);
+  lightsUBO->setUBOMember<"pointLights[3].position">(pointLightPositions[3]);
+  lightsUBO->setUBOMember<"pointLights[3].ambient">(
+      glm::vec3(0.05f, 0.05f, 0.05f));
+  lightsUBO->setUBOMember<"pointLights[3].diffuse">(
+      glm::vec3(0.8f, 0.8f, 0.8f));
+  lightsUBO->setUBOMember<"pointLights[3].specular">(
+      glm::vec3(1.0f, 1.0f, 1.0f));
+  lightsUBO->setUBOMember<"pointLights[3].constant">(1.0f);
+  lightsUBO->setUBOMember<"pointLights[3].linear">(0.09f);
+  lightsUBO->setUBOMember<"pointLights[3].quadratic">(0.032f);
   // spotLight
-  shaders["Default"]->update<"spotLight.position">(Scene::camera->Position);
-  shaders["Default"]->update<"spotLight.direction">(Scene::camera->Front);
-  shaders["Default"]->update<"spotLight.ambient">(0.0f, 0.0f, 0.0f);
-  shaders["Default"]->update<"spotLight.diffuse">(1.0f, 1.0f, 1.0f);
-  shaders["Default"]->update<"spotLight.specular">(1.0f, 1.0f, 1.0f);
-  shaders["Default"]->update<"spotLight.constant">(1.0f);
-  shaders["Default"]->update<"spotLight.linear">(0.09f);
-  shaders["Default"]->update<"spotLight.quadratic">(0.032f);
-  shaders["Default"]->update<"spotLight.cutOff">(glm::cos(glm::radians(12.5f)));
-  shaders["Default"]->update<"spotLight.outerCutOff">(
+  lightsUBO->setUBOMember<"spotLight.position">(Scene::camera->Position);
+  lightsUBO->setUBOMember<"spotLight.direction">(Scene::camera->Front);
+  lightsUBO->setUBOMember<"spotLight.ambient">(glm::vec3(0.0f, 0.0f, 0.0f));
+  lightsUBO->setUBOMember<"spotLight.diffuse">(glm::vec3(1.0f, 1.0f, 1.0f));
+  lightsUBO->setUBOMember<"spotLight.specular">(glm::vec3(1.0f, 1.0f, 1.0f));
+  lightsUBO->setUBOMember<"spotLight.constant">(1.0f);
+  lightsUBO->setUBOMember<"spotLight.linear">(0.09f);
+  lightsUBO->setUBOMember<"spotLight.quadratic">(0.032f);
+  lightsUBO->setUBOMember<"spotLight.cutOff">(glm::cos(glm::radians(12.5f)));
+  lightsUBO->setUBOMember<"spotLight.outerCutOff">(
       glm::cos(glm::radians(15.0f)));
 
   switch (renderType) {
@@ -300,4 +316,9 @@ unsigned int Scene::loadCubemap(vector<std::string> faces) {
 
   stbi_set_flip_vertically_on_load(true);
   return textureID;
+}
+
+void Scene::createUBO(Shader &shader, string_view blockName) {
+  UBO *newUBO = new UBO(shader.ID, blockName);
+  UBOs.insert({blockName, newUBO});
 }

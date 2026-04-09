@@ -2,7 +2,6 @@
 #define CAMERA_H
 
 #include "UBO.hpp"
-#include "glm/gtc/type_ptr.hpp"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -53,7 +52,7 @@ public:
     Projection =
         glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
     updateCameraVectors();
-    this->cameraUBO->update(1, glm::value_ptr(Projection));
+    this->cameraUBO->setUBOMember<"projection">(Projection);
   }
   // constructor with scalar values
   Camera(UBO *cameraUBO, float posX, float posY, float posZ, float upX,
@@ -67,7 +66,7 @@ public:
     Projection =
         glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
     updateCameraVectors();
-    this->cameraUBO->update(1, glm::value_ptr(Projection));
+    this->cameraUBO->setUBOMember<"projection">(Projection);
   }
 
   // returns the view matrix calculated using Euler Angles and the LookAt Matrix
@@ -101,7 +100,7 @@ public:
       break;
     }
     View = glm::lookAt(Position, Position + Front, Up);
-    cameraUBO->update(0, glm::value_ptr(View));
+    cameraUBO->setUBOMember<"view">(View);
   }
 
   // processes input received from a mouse input system. Expects the offset
@@ -154,7 +153,7 @@ private:
     Up = glm::normalize(glm::cross(Right, Front));
 
     View = glm::lookAt(Position, Position + Front, Up);
-    cameraUBO->update(0, glm::value_ptr(View));
+    cameraUBO->setUBOMember<"view">(View);
   }
 };
 
