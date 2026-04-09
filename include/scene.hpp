@@ -21,8 +21,6 @@ public:
   float lastFrame;
   map<string_view, UBO *> UBOs;
 
-  void initializeScene();
-
   void addModel(const std::string &modelPath);
   void addShader(std::string_view name, std::string_view vertexPath,
                  std::string_view fragmentPath);
@@ -77,6 +75,8 @@ private:
 
   bool drawPostProcessing();
   unsigned int loadCubemap(vector<std::string> faces);
+  void initializeScene();
+  void initializeLights();
 };
 
 extern Scene *scene;

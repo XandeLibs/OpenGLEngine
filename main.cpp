@@ -60,7 +60,6 @@ int main() {
   // Scene and Shader
   scene = new Scene("vertex", "fragment");
 
-  scene->createUBO(*scene->shaders["Default"], "Lights");
   scene->shaders["Default"]->bindUBO(scene->UBOs["Lights"]);
 
   scene->addShader("Texture", "vertex", "fragtex");
