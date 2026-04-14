@@ -7,8 +7,9 @@
 #include "UI.hpp"
 #include "scene.hpp"
 
-int main() {
-  // Opengl Init
+GLFWwindow *window;
+
+int openglInit() {
   const char *glfwError;
 
   glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
@@ -24,7 +25,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
-  GLFWwindow *window = glfwCreateWindow(800, 600, "GLFWApp", NULL, NULL);
+  window = glfwCreateWindow(800, 600, "GLFWApp", NULL, NULL);
   if (window == NULL) {
     std::cout << "glfw error: " << std::hex << glfwGetError(&glfwError);
     std::cout << std::endl << glfwError << std::endl;
@@ -56,6 +57,14 @@ int main() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   stbi_set_flip_vertically_on_load(true);
+
+  return 0;
+}
+
+int main() {
+  int result = openglInit();
+  if (result != 0)
+    return result;
 
   // Scene and Shader
   scene = new Scene("vertex", "fragment");
