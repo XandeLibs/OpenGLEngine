@@ -73,4 +73,33 @@ private:
   std::string shaderFromFile(std::string_view shaderPath);
 };
 
+struct UniformCache {
+  unsigned int shaderID;
+  unsigned int location;
+
+  UniformCache(Shader *shader, std::string_view uniformName) {
+    shaderID = shader->ID;
+    location = glGetUniformLocation(shaderID, uniformName.data());
+  }
+  void setBool(bool value) const {
+    glProgramUniform1i(shaderID, location, (int)value);
+  }
+  void setInt(int value) const {
+    glProgramUniform1i(shaderID, location, value);
+  }
+  void setFloat(float value) const {
+    glProgramUniform1f(shaderID, location, value);
+  }
+  void setMat4(glm::mat4 value) const {
+    glProgramUniformMatrix4fv(shaderID, location, 1, GL_FALSE,
+                              glm::value_ptr(value));
+  }
+  void setVec3(glm::vec3 value) const {
+    glProgramUniform3fv(shaderID, location, 1, glm::value_ptr(value));
+  }
+  void setVec3(float v1, float v2, float v3) const {
+    glProgramUniform3f(shaderID, location, v1, v2, v3);
+  }
+};
+
 #endif

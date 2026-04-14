@@ -21,7 +21,9 @@ public:
   float lastFrame;
   map<string_view, UBO *> UBOs;
 
-  void addModel(const std::string &modelPath);
+  void addModel(
+      const std::string &modelPath,
+      const std::vector<glm::mat4> &modelInstances = std::vector<glm::mat4>());
   void addShader(std::string_view name, std::string_view vertexPath,
                  std::string_view fragmentPath);
 

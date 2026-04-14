@@ -27,11 +27,17 @@ public:
       textures_loaded; // stores all the textures loaded so far, optimization to
                        // make sure textures aren't loaded more than once.
   vector<Mesh> meshes;
+  vector<glm::mat4> modelInstances;
   string directory;
   bool gammaCorrection;
+  glm::mat4 modelMatrix;
+  bool instanced;
 
   // constructor, expects a filepath to a 3D model.
-  Model(string_view path, bool gamma = false) : gammaCorrection(gamma) {
+  Model(string_view path, const std::vector<glm::mat4> &modelInstances,
+        bool gamma = false)
+      : modelInstances(modelInstances), gammaCorrection(gamma),
+        instanced(!modelInstances.empty()) {
     loadModel(path);
   }
 
@@ -40,8 +46,6 @@ public:
     for (unsigned int i = 0; i < meshes.size(); i++)
       meshes[i].Draw(shader);
   }
-
-  glm::mat4 modelMatrix;
 
 private:
   // loads a model with supported ASSIMP extensions from file and stores the

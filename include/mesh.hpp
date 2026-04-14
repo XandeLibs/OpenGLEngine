@@ -43,14 +43,19 @@ public:
   vector<Vertex> vertices;
   vector<unsigned int> indices;
   vector<Texture> textures;
+  vector<glm::mat4> *modelInstances;
   unsigned int VAO;
+  bool instanced;
 
   // constructor
   Mesh(vector<Vertex> vertices, vector<unsigned int> indices,
-       vector<Texture> textures) {
+       vector<Texture> textures, vector<glm::mat4> &modelInstances,
+       bool instanced) {
     this->vertices = vertices;
     this->indices = indices;
     this->textures = textures;
+    this->instanced = instanced;
+    this->modelInstances = &modelInstances;
 
     // now that we have all the required data, set the vertex buffers and its
     // attribute pointers.
@@ -88,8 +93,13 @@ public:
 
     // draw mesh
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()),
-                   GL_UNSIGNED_INT, 0);
+    if (instanced)
+      glDrawElementsInstanced(GL_TRIANGLES,
+                              static_cast<unsigned int>(indices.size()),
+                              GL_UNSIGNED_INT, 0, modelInstances->size());
+    else
+      glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()),
+                     GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     // always good practice to set everything back to defaults once configured.
@@ -98,7 +108,7 @@ public:
 
 private:
   // render data
-  unsigned int VBO, EBO;
+  unsigned int VBO, EBO, instanceVBO;
 
   // initializes all the buffer objects/arrays
   void setupMesh() {
@@ -106,6 +116,7 @@ private:
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
+    glGenBuffers(1, &instanceVBO);
 
     glBindVertexArray(VAO);
     // load data into vertex buffers
@@ -133,23 +144,33 @@ private:
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                           (void *)offsetof(Vertex, TexCoords));
-    // vertex tangent
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          (void *)offsetof(Vertex, Tangent));
-    // vertex bitangent
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          (void *)offsetof(Vertex, Bitangent));
-    // ids
-    glEnableVertexAttribArray(5);
-    glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex),
-                           (void *)offsetof(Vertex, m_BoneIDs));
+    // instanced model matrices
+    if (instanced) {
+      glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * modelInstances->size(),
+                   modelInstances->data(), GL_STATIC_DRAW);
 
-    // weights
-    glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          (void *)offsetof(Vertex, m_Weights));
+      std::size_t vec4Size = sizeof(glm::vec4);
+      glEnableVertexAttribArray(3);
+      glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void *)0);
+
+      glEnableVertexAttribArray(4);
+      glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size,
+                            (void *)(1 * vec4Size));
+
+      glEnableVertexAttribArray(5);
+      glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size,
+                            (void *)(2 * vec4Size));
+
+      glEnableVertexAttribArray(6);
+      glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size,
+                            (void *)(3 * vec4Size));
+
+      glVertexAttribDivisor(3, 1);
+      glVertexAttribDivisor(4, 1);
+      glVertexAttribDivisor(5, 1);
+      glVertexAttribDivisor(6, 1);
+    }
     glBindVertexArray(0);
   }
 };

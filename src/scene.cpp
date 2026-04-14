@@ -176,8 +176,10 @@ void Scene::addShader(std::string_view name, std::string_view vertexPath,
   shaders.insert({shader->name, shader});
 }
 
-void Scene::addModel(const std::string &modelPath) {
-  Model *model = new Model("assets/" + modelPath);
+void Scene::addModel(const std::string &modelPath,
+                     const std::vector<glm::mat4> &modelInstances) {
+  Model *model = new Model("assets/" + modelPath, modelInstances);
+  model->modelInstances = modelInstances;
   models.push_back(model);
 }
 
@@ -199,7 +201,6 @@ bool Scene::render() {
   auto lightsUBO = scene->UBOs["Lights"];
   lightsUBO->setUBOMember<"spotLight.position">(Scene::camera->Position);
   lightsUBO->setUBOMember<"spotLight.direction">(Scene::camera->Front);
-
   switch (renderType) {
   case depth:
     shaders["Depth"]->use();
@@ -253,8 +254,16 @@ bool Scene::render() {
   case normal:
     shaders["Default"]->use();
     for (auto m : models) {
-      shaders["Default"]->update<"model">(m->modelMatrix);
-      m->Draw(*shaders["Default"]);
+      if (!m->instanced) {
+        shaders["Default"]->update<"model">(m->modelMatrix);
+        m->Draw(*shaders["Default"]);
+      }
+    }
+    shaders["Instanced"]->use();
+    for (auto m : models) {
+      if (m->instanced) {
+        m->Draw(*shaders["Instanced"]);
+      }
     }
     break;
   case texture:

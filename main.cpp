@@ -71,19 +71,49 @@ int main() {
 
   scene->shaders["Default"]->bindUBO(scene->UBOs["Lights"]);
 
+  scene->addShader("Instanced", "vertexInstanced", "fragment");
+  scene->shaders["Instanced"]->bindUBO(scene->camera->getUBO());
+  scene->shaders["Instanced"]->bindUBO(scene->UBOs["Lights"]);
+
   scene->addShader("Texture", "vertex", "fragtex");
   scene->shaders["Texture"]->bindUBO(scene->camera->getUBO());
+
   scene->addShader("Depth", "vertex", "depth");
   scene->shaders["Depth"]->bindUBO(scene->camera->getUBO());
 
   scene->addShader("Border", "vertexBorder", "border");
   scene->shaders["Border"]->bindUBO(scene->camera->getUBO());
+
   scene->addShader("Screen", "vertScreen", "fragScreen");
   scene->addShader("Skybox", "vertSkybox", "fragSkybox");
   // scene->shaders["Skybox"]->bindUBO(scene->camera->getUBO());
 
   scene->addModel("backpack/backpack.obj");
-  scene->addModel("panel/panel.obj");
+
+  std::vector<glm::mat4> modelInstances;
+
+  auto modelMatrix = glm::mat4(1.0f);
+  modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+  modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+
+  modelInstances.push_back(modelMatrix);
+
+  modelMatrix = glm::mat4(1.0f);
+  modelMatrix = glm::translate(modelMatrix, glm::vec3(2.0f, 0.0f, 0.0f));
+  modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+  modelInstances.push_back(modelMatrix);
+
+  modelMatrix = glm::mat4(1.0f);
+  modelMatrix = glm::translate(modelMatrix, glm::vec3(2.0f, 2.0f, 0.0f));
+  modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+  modelInstances.push_back(modelMatrix);
+
+  modelMatrix = glm::mat4(1.0f);
+  modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 2.0f, 0.0f));
+  modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+  modelInstances.push_back(modelMatrix);
+
+  scene->addModel("panel/panel.obj", modelInstances);
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
