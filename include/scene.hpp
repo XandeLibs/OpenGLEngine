@@ -70,7 +70,8 @@ private:
   };
 
   unsigned int quadVAO, quadVBO;
-  unsigned int textureColorbuffer, framebuffer, renderbuffer;
+  unsigned int quadTexture, quadFBO, quadDepthStencilRBO;
+  unsigned int resolvedFBO, resolvedTexture;
 
   unsigned int skyboxVAO, skyboxVBO;
   unsigned int skyboxTexture;
