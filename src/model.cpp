@@ -12,16 +12,19 @@ unsigned int TextureFromFile(const char *path, const string &directory,
   unsigned char *data =
       stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
   if (data) {
-    GLenum format = 0;
+    GLenum format = 0, internalFormat = 0;
     if (nrComponents == 1)
-      format = GL_RED;
-    else if (nrComponents == 3)
-      format = GL_RGB;
-    else if (nrComponents == 4)
-      format = GL_RGBA;
+      format = internalFormat = GL_RED;
+    else if (nrComponents == 3) {
+      format = GL_SRGB;
+      internalFormat = GL_RGB;
+    } else if (nrComponents == 4) {
+      format = GL_SRGB_ALPHA;
+      internalFormat = GL_RGBA;
+    }
 
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, internalFormat,
                  GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 

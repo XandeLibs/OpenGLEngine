@@ -20,7 +20,7 @@ Scene::Scene(std::string_view defaultVertexPath,
   camera = new Camera(cameraUBO);
   auto ubo = camera->getUBO();
   shaders["Default"]->bindUBO(ubo);
-  shaders["Default"]->update<"material.shininess">(32.0f);
+  shaders["Default"]->update<"material.shininess">(128.0f);
 
   renderType = normal;
   deltaTime = 0.0f;
@@ -326,11 +326,15 @@ bool Scene::drawPostProcessing() {
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
+  glEnable(GL_FRAMEBUFFER_SRGB);
+
   shaders["Screen"]->use();
   glBindVertexArray(quadVAO);
   glDisable(GL_DEPTH_TEST);
   glBindTexture(GL_TEXTURE_2D, resolvedTexture);
   glDrawArrays(GL_TRIANGLES, 0, 6);
+
+  glDisable(GL_FRAMEBUFFER_SRGB);
 
   return true;
 }
