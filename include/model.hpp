@@ -8,6 +8,7 @@
 #include <assimp/scene.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <span>
 #include <stb_image.h>
 
 #include <mesh.hpp>
@@ -27,27 +28,38 @@ public:
       textures_loaded; // stores all the textures loaded so far, optimization to
                        // make sure textures aren't loaded more than once.
   vector<Mesh> meshes;
-  vector<glm::mat4> modelInstances;
   string directory;
   bool gammaCorrection;
-  glm::mat4 modelMatrix;
-  bool instanced;
 
   // constructor, expects a filepath to a 3D model.
-  Model(string_view path, const std::vector<glm::mat4> &modelInstances,
-        bool gamma = false)
-      : modelInstances(modelInstances), gammaCorrection(gamma),
-        instanced(!modelInstances.empty()) {
+  Model(string_view path, int instanceCount, bool gamma = false)
+      : gammaCorrection(gamma), instanceCount(instanceCount) {
+    modelMatrices.reserve(instanceCount);
+    modelMatricesUBO = new UBO("instances", 20 * sizeof(glm::mat4));
     loadModel(path);
   }
+
+  ~Model() { delete modelMatricesUBO; }
 
   // draws the model, and thus all its meshes
   void Draw(Shader &shader) {
     for (unsigned int i = 0; i < meshes.size(); i++)
-      meshes[i].Draw(shader);
+      meshes[i].Draw(shader, instanceCount);
   }
 
+  void addMatrix(glm::mat4 modelMatrix);
+  void addMatrices(std::vector<glm::mat4> modelMatrices);
+
+  const std::span<glm::mat4> getModelMatrices() { return modelMatrices; }
+
+  void updateModelMatrices();
+  const UBO *const getModelUBO() { return modelMatricesUBO; }
+
 private:
+  std::vector<glm::mat4> modelMatrices;
+  int instanceCount;
+  UBO *modelMatricesUBO;
+
   // loads a model with supported ASSIMP extensions from file and stores the
   // resulting meshes in the meshes vector.
   void loadModel(string_view path);

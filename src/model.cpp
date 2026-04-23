@@ -59,10 +59,6 @@ void Model::loadModel(string_view path) {
   // retrieve the directory path of the filepath
   directory = path.substr(0, path.find_last_of('/'));
 
-  modelMatrix = glm::mat4(1.0f);
-  modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-  modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
-
   // process ASSIMP's root node recursively
   processNode(scene->mRootNode, scene);
 }
@@ -168,7 +164,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
   textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
   // return a mesh object created from the extracted mesh data
-  return Mesh(vertices, indices, textures, modelInstances, instanced);
+  return Mesh(vertices, indices, textures);
 }
 
 vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type,
@@ -200,4 +196,22 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type,
     }
   }
   return textures;
+}
+
+void Model::addMatrix(glm::mat4 matrix) {
+  modelMatrices.push_back(matrix);
+  instanceCount = modelMatrices.size();
+  updateModelMatrices();
+}
+
+void Model::addMatrices(std::vector<glm::mat4> matrices) {
+  modelMatrices.reserve(modelMatrices.size() + matrices.size());
+  modelMatrices.insert(modelMatrices.end(), matrices.begin(), matrices.end());
+  instanceCount = modelMatrices.size();
+  updateModelMatrices();
+}
+
+void Model::updateModelMatrices() {
+  memcpy(modelMatricesUBO->getBufferPtr(), modelMatrices.data(),
+         modelMatrices.size() * sizeof(glm::mat4));
 }

@@ -4,6 +4,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include <algorithm>
 #include <glad/glad.h>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -39,6 +40,8 @@ concept GlmType = GlmVec<T> || GlmMat<T>;
 class UBO {
 public:
   UBO(unsigned int programID, std::string_view blockName);
+  UBO(unsigned int programID, std::string_view blockName, int arraySize);
+  UBO(std::string_view blockName, int arraySize);
   ~UBO();
   inline const unsigned int getBindingPoint() const { return bindingPoint; };
   inline const std::string_view getBlockName() const { return blockName; };
@@ -46,6 +49,10 @@ public:
   template <StringLiteral MemberName, typename T>
   void setUBOMember(const T &value) {
     static GLint offset = [this]() {
+      if (this->programID == 0) {
+        std::cerr << "UBO does not contain shader to get offset from";
+        return -1;
+      }
       const char *name = MemberName.value;
       GLuint index = glGetProgramResourceIndex(programID, GL_UNIFORM, name);
       GLenum property = GL_OFFSET;
@@ -60,6 +67,10 @@ public:
   template <StringLiteral MemberName, GlmType T>
   void setUBOMember(const T &value) {
     static GLint offset = [this]() {
+      if (this->programID == 0) {
+        std::cerr << "UBO does not contain shader to get offset from";
+        return -1;
+      }
       const char *name = MemberName.value;
       GLuint index = glGetProgramResourceIndex(programID, GL_UNIFORM, name);
       GLenum property = GL_OFFSET;
@@ -71,6 +82,8 @@ public:
     memcpy(static_cast<uint8_t *>(bufferPtr) + offset, glm::value_ptr(value),
            sizeof(T));
   }
+
+  void *getBufferPtr() { return bufferPtr; }
 
 private:
   static unsigned int nextBindingPoint;

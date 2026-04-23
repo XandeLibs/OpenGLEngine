@@ -8,7 +8,9 @@ uniform Transforms {
     mat4 projection;
 };
 
-uniform mat4 model;
+layout(std140) uniform instances {
+    mat4 modelMatrices[20];
+};
 
 out vec3 Normal;
 out vec3 FragPos;
@@ -16,6 +18,7 @@ out vec2 TexCoords;
 
 void main()
 {
+    mat4 model = modelMatrices[gl_InstanceID];
     gl_Position = projection * view * model * vec4(aPos, 1.0);
     FragPos = vec3(model * vec4(aPos, 1.0));
     Normal = mat3(transpose(inverse(model))) * aNormal;

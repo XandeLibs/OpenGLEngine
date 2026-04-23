@@ -50,6 +50,8 @@ Scene::~Scene() {
   glDeleteFramebuffers(1, &quadFBO);
   glDeleteFramebuffers(1, &resolvedFBO);
   glDeleteRenderbuffers(1, &quadDepthStencilRBO);
+
+  glDeleteFramebuffers(1, &depthMapFBO);
 }
 
 void Scene::initializeScene() {
@@ -201,9 +203,9 @@ void Scene::addShader(std::string_view name, std::string_view vertexPath,
 }
 
 void Scene::addModel(const std::string &modelPath,
-                     const std::vector<glm::mat4> &modelInstances) {
-  Model *model = new Model("assets/" + modelPath, modelInstances);
-  model->modelInstances = modelInstances;
+                     std::vector<glm::mat4> modelMatrices) {
+  Model *model = new Model("assets/" + modelPath, modelMatrices.size());
+  model->addMatrices(modelMatrices);
   models.push_back(model);
 }
 
@@ -227,11 +229,7 @@ bool Scene::render() {
   lightsUBO->setUBOMember<"spotLight.direction">(Scene::camera->Front);
   switch (renderType) {
   case depth:
-    shaders["Depth"]->use();
-    for (auto m : models) {
-      shaders["Depth"]->update<"model">(m->modelMatrix);
-      m->Draw(*shaders["Depth"]);
-    }
+    renderAll(shaders["Depth"]);
     break;
   case border:
     shaders["Default"]->use();
@@ -246,15 +244,11 @@ bool Scene::render() {
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
     glStencilMask(0xFF);
 
-    for (auto m : models) {
-      shaders["Default"]->update<"model">(m->modelMatrix);
-      m->Draw(*shaders["Default"]);
-    }
+    renderAll(shaders["Default"]);
 
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilMask(0x00);
     glDisable(GL_DEPTH_TEST);
-    shaders["Border"]->use();
 
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -262,12 +256,7 @@ bool Scene::render() {
     newModel = glm::translate(newModel, glm::vec3(0.0f, 0.0f, 0.0f));
     newModel = glm::scale(newModel, glm::vec3(1.1f, 1.1f, 1.1f));
 
-    shaders["Border"]->update<"model">(model);
-
-    for (auto m : models) {
-      shaders["Default"]->update<"model">(m->modelMatrix);
-      m->Draw(*shaders["Default"]);
-    }
+    renderAll(shaders["Border"]);
 
     glStencilMask(0xFF);
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -276,26 +265,10 @@ bool Scene::render() {
 
     break;
   case normal:
-    shaders["Default"]->use();
-    for (auto m : models) {
-      if (!m->instanced) {
-        shaders["Default"]->update<"model">(m->modelMatrix);
-        m->Draw(*shaders["Default"]);
-      }
-    }
-    shaders["Instanced"]->use();
-    for (auto m : models) {
-      if (m->instanced) {
-        m->Draw(*shaders["Instanced"]);
-      }
-    }
+    renderAll(shaders["Default"]);
     break;
   case texture:
-    shaders["Texture"]->use();
-    for (auto m : models) {
-      shaders["Texture"]->update<"model">(m->modelMatrix);
-      m->Draw(*shaders["Texture"]);
-    }
+    renderAll(shaders["Texture"]);
     break;
   case RENDER_COUNT:
     std::cerr << "invalid render type state: RENDER_COUNT\n";
@@ -374,4 +347,35 @@ unsigned int Scene::loadCubemap(vector<std::string> faces) {
 void Scene::createUBO(Shader &shader, string_view blockName) {
   UBO *newUBO = new UBO(shader.ID, blockName);
   UBOs.insert({blockName, newUBO});
+}
+
+void Scene::initializeShadowMapFramebuffer() {
+  glGenFramebuffers(1, &depthMapFBO);
+
+  const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+
+  unsigned int depthMap;
+  glGenTextures(1, &depthMap);
+  glBindTexture(GL_TEXTURE_2D, depthMap);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH,
+               SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                         depthMap, 0);
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Scene::renderAll(Shader *shader) {
+  shader->use();
+  for (auto m : models) {
+    shader->bindUBO(m->getModelUBO());
+    m->Draw(*shader);
+  }
 }

@@ -55,6 +55,9 @@ public:
   void bindUBO(const UBO *const UBO) {
     auto name = UBO->getBlockName();
     auto blockID = glGetUniformBlockIndex(ID, name.data());
+    if (blockID == GL_INVALID_INDEX) {
+      std::cerr << "Error getting index of uniform " << name.data() << "\n";
+    }
     glUniformBlockBinding(ID, blockID, UBO->getBindingPoint());
   }
 

@@ -2,9 +2,11 @@
 #define SCENE_H
 
 #include "camera.hpp"
+#include "glm/fwd.hpp"
 #include "model.hpp"
 #include <map>
 #include <string>
+#include <vector>
 
 class Scene {
 public:
@@ -21,9 +23,8 @@ public:
   float lastFrame;
   map<string_view, UBO *> UBOs;
 
-  void addModel(
-      const std::string &modelPath,
-      const std::vector<glm::mat4> &modelInstances = std::vector<glm::mat4>());
+  void addModel(const std::string &modelPath,
+                std::vector<glm::mat4> modelMatrices);
   void addShader(std::string_view name, std::string_view vertexPath,
                  std::string_view fragmentPath);
 
@@ -76,10 +77,15 @@ private:
   unsigned int skyboxVAO, skyboxVBO;
   unsigned int skyboxTexture;
 
+  unsigned int depthMapFBO;
+
   bool drawPostProcessing();
   unsigned int loadCubemap(vector<std::string> faces);
   void initializeScene();
   void initializeLights();
+  void initializeShadowMapFramebuffer();
+
+  void renderAll(Shader *shader);
 };
 
 extern Scene *scene;
