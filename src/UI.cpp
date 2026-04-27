@@ -9,6 +9,7 @@
 namespace UI {
 
 void showShaderWindow();
+void showLightsWindow();
 
 void setup(GLFWwindow *window) {
 
@@ -30,6 +31,7 @@ void startLoop() {
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
   showShaderWindow();
+  showLightsWindow();
   float main_scale =
       ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
   ImGuiStyle &style = ImGui::GetStyle();
@@ -70,4 +72,33 @@ void showShaderWindow() {
 
   ImGui::End();
 }
+
+void showLightsWindow() {
+  ImGui::Begin("Lights");
+
+  auto LightsUBO = scene->UBOs["Lights"];
+
+  ImGui::SliderFloat3(
+      "Direction",
+      reinterpret_cast<float *>(
+          LightsUBO->getBufferPtr() +
+          LightsUBO->getUBOMemberOffset<"dirLight.direction">()),
+      -1, 1);
+
+  ImGui::ColorEdit3("Ambient",
+                    reinterpret_cast<float *>(
+                        LightsUBO->getBufferPtr() +
+                        LightsUBO->getUBOMemberOffset<"dirLight.ambient">()));
+  ImGui::ColorEdit3("Diffuse",
+                    reinterpret_cast<float *>(
+                        LightsUBO->getBufferPtr() +
+                        LightsUBO->getUBOMemberOffset<"dirLight.diffuse">()));
+  ImGui::ColorEdit3("Specular",
+                    reinterpret_cast<float *>(
+                        LightsUBO->getBufferPtr() +
+                        LightsUBO->getUBOMemberOffset<"dirLight.specular">()));
+
+  ImGui::End();
+}
+
 } // namespace UI

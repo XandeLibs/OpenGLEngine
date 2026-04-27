@@ -3,6 +3,7 @@
 
 #include "glm/gtc/type_ptr.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <glad/glad.h>
 #include <iostream>
 #include <string>
@@ -14,7 +15,8 @@ struct Uniform {
   int offset, size;
 };
 
-template <size_t N> struct StringLiteral {
+template <size_t N>
+struct StringLiteral {
   char value[N];
   constexpr StringLiteral(const char (&str)[N]) {
     std::ranges::copy_n(str, N, value);
@@ -83,7 +85,25 @@ public:
            sizeof(T));
   }
 
-  void *getBufferPtr() { return bufferPtr; }
+  template <StringLiteral MemberName>
+  GLint getUBOMemberOffset() {
+    static GLint offset = [this]() {
+      if (this->programID == 0) {
+        std::cerr << "UBO does not contain shader to get offset from";
+        return -1;
+      }
+      const char *name = MemberName.value;
+      GLuint index = glGetProgramResourceIndex(programID, GL_UNIFORM, name);
+      GLenum property = GL_OFFSET;
+      GLint offset;
+      glGetProgramResourceiv(programID, GL_UNIFORM, index, 1, &property, 1,
+                             NULL, &offset);
+      return offset;
+    }();
+    return offset;
+  }
+
+  std::byte *getBufferPtr() { return static_cast<std::byte *>(bufferPtr); }
 
 private:
   static unsigned int nextBindingPoint;
