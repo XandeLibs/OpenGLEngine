@@ -123,9 +123,10 @@ void Scene::initializeLights() {
 
   lightsUBO->setUBOMember<"dirLight.direction">(glm::vec3(-0.2f, -1.0f, -0.3f));
   lightsUBO->setUBOMember<"dirLight.ambient">(glm::vec3(0.05f, 0.05f, 0.05f));
-  lightsUBO->setUBOMember<"dirLight.diffuse">(glm::vec3(0.4f, 0.4f, 0.4f));
-  lightsUBO->setUBOMember<"dirLight.specular">(glm::vec3(0.5f, 0.5f, 0.5f));
+  lightsUBO->setUBOMember<"dirLight.diffuse">(glm::vec3(0.7f, 0.7f, 0.7f));
+  lightsUBO->setUBOMember<"dirLight.specular">(glm::vec3(0.2f, 0.2f, 0.2f));
 
+  /*
   // point light 1
   lightsUBO->setUBOMember<"pointLights[0].position">(pointLightPositions[0]);
   lightsUBO->setUBOMember<"pointLights[0].ambient">(
@@ -186,6 +187,7 @@ void Scene::initializeLights() {
   lightsUBO->setUBOMember<"spotLight.cutOff">(glm::cos(glm::radians(12.5f)));
   lightsUBO->setUBOMember<"spotLight.outerCutOff">(
       glm::cos(glm::radians(15.0f)));
+  */
 }
 
 void Scene::addShader(std::string_view name, std::string_view vertexPath,
