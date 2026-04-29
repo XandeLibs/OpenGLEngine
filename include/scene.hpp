@@ -40,6 +40,9 @@ private:
   vector<std::string> skyboxFaces = {"right.jpg",  "left.jpg",  "top.jpg",
                                      "bottom.jpg", "front.jpg", "back.jpg"};
 
+  const int SHADOW_WIDTH = 1024;
+  const int SHADOW_HEIGHT = 1024;
+
   static constexpr float skyboxVertices[] = {
       // positions
       -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
@@ -77,15 +80,19 @@ private:
   unsigned int skyboxVAO, skyboxVBO;
   unsigned int skyboxTexture;
 
-  unsigned int depthMapFBO;
+  unsigned int shadowMapTexture, shadowMapFBO;
+
+  glm::mat4 lightSpaceMatrix;
 
   bool drawPostProcessing();
   unsigned int loadCubemap(vector<std::string> faces);
   void initializeScene();
   void initializeLights();
-  void initializeShadowMapFramebuffer();
+  void initializeShadowMap();
 
   void renderAll(Shader *shader);
+
+  void renderShadowMap();
 };
 
 extern Scene *scene;

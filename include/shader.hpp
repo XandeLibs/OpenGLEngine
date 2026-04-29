@@ -17,32 +17,38 @@ public:
   std::string name;
   unsigned int ID;
 
-  template <StringLiteral Name> void update(bool value) {
+  template <StringLiteral Name>
+  void update(bool value) {
     static GLint loc = getUniformLoc(Name.value);
     glProgramUniform1f(ID, loc, (int)value);
   };
 
-  template <StringLiteral Name> void update(int value) {
+  template <StringLiteral Name>
+  void update(int value) {
     static GLint loc = getUniformLoc(Name.value);
     glProgramUniform1i(ID, loc, value);
   };
 
-  template <StringLiteral Name> void update(float value) {
+  template <StringLiteral Name>
+  void update(float value) {
     static GLint loc = getUniformLoc(Name.value);
     glProgramUniform1f(ID, loc, value);
   };
 
-  template <StringLiteral Name> void update(glm::mat4 value) {
+  template <StringLiteral Name>
+  void update(glm::mat4 value) {
     static GLint loc = getUniformLoc(Name.value);
     glProgramUniformMatrix4fv(ID, loc, 1, GL_FALSE, glm::value_ptr(value));
   };
 
-  template <StringLiteral Name> void update(glm::vec3 value) {
+  template <StringLiteral Name>
+  void update(glm::vec3 value) {
     static GLint loc = getUniformLoc(Name.value);
     glProgramUniform3fv(ID, loc, 1, glm::value_ptr(value));
   };
 
-  template <StringLiteral Name> void update(float v1, float v2, float v3) {
+  template <StringLiteral Name>
+  void update(float v1, float v2, float v3) {
     static GLint loc = getUniformLoc(Name.value);
     glProgramUniform3f(ID, loc, v1, v2, v3);
   };
@@ -56,7 +62,8 @@ public:
     auto name = UBO->getBlockName();
     auto blockID = glGetUniformBlockIndex(ID, name.data());
     if (blockID == GL_INVALID_INDEX) {
-      std::cerr << "Error getting index of uniform " << name.data() << "\n";
+      std::cerr << "Error getting index of uniform " << name.data()
+                << " in shader " << this->name << "\n";
     }
     glUniformBlockBinding(ID, blockID, UBO->getBindingPoint());
   }

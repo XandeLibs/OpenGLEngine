@@ -67,7 +67,7 @@ int main() {
     return result;
 
   // Scene and Shader
-  scene = new Scene("vertex", "fragment");
+  scene = new Scene("vertexFinal", "fragment");
 
   scene->shaders["Default"]->bindUBO(scene->UBOs["Lights"]);
 
@@ -83,6 +83,8 @@ int main() {
   scene->addShader("Screen", "vertScreen", "fragScreen");
   scene->addShader("Skybox", "vertSkybox", "fragSkybox");
   // scene->shaders["Skybox"]->bindUBO(scene->camera->getUBO());
+  scene->addShader("ShadowMap", "vertShadowMap", "fragEmpty");
+  scene->shaders["ShadowMap"]->bindUBO(scene->UBOs["shadowMapMatrix"]);
 
   auto modelMatrix = glm::mat4(1.0f);
   modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));

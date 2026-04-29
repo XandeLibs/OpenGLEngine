@@ -37,7 +37,7 @@ public:
 
   glm::mat4 Projection, View;
 
-  const UBO *const getUBO() { return cameraUBO; }
+  UBO *const getUBO() { return cameraUBO; }
 
   // constructor with vectors
   Camera(UBO *cameraUBO, glm::vec3 position = glm::vec3(0.0f, 0.0f, 5.0f),

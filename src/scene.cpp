@@ -29,6 +29,7 @@ Scene::Scene(std::string_view defaultVertexPath,
   createUBO(*shaders["Default"], "Lights");
   initializeLights();
   initializeScene();
+  initializeShadowMap();
 }
 
 Scene::~Scene() {
@@ -51,7 +52,8 @@ Scene::~Scene() {
   glDeleteFramebuffers(1, &resolvedFBO);
   glDeleteRenderbuffers(1, &quadDepthStencilRBO);
 
-  glDeleteFramebuffers(1, &depthMapFBO);
+  glDeleteFramebuffers(1, &shadowMapFBO);
+  glDeleteTextures(1, &shadowMapTexture);
 }
 
 void Scene::initializeScene() {
@@ -216,11 +218,6 @@ bool Scene::render() {
   Scene::deltaTime = currentFrame - Scene::lastFrame;
   Scene::lastFrame = currentFrame;
 
-  glBindFramebuffer(GL_FRAMEBUFFER, quadFBO);
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  glEnable(GL_DEPTH_TEST);
-
   glm::mat4 model = glm::mat4(1.0f);
   glm::mat4 newModel = glm::mat4(1.0f);
 
@@ -229,6 +226,19 @@ bool Scene::render() {
   auto lightsUBO = scene->UBOs["Lights"];
   lightsUBO->setUBOMember<"spotLight.position">(Scene::camera->Position);
   lightsUBO->setUBOMember<"spotLight.direction">(Scene::camera->Front);
+
+  glDisable(GL_MULTISAMPLE);
+
+  renderShadowMap();
+
+  glViewport(0, 0, 800, 600);
+  glBindFramebuffer(GL_FRAMEBUFFER, quadFBO);
+  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  glEnable(GL_DEPTH_TEST);
+
+  glEnable(GL_MULTISAMPLE);
+
   switch (renderType) {
   case depth:
     renderAll(shaders["Depth"]);
@@ -267,6 +277,9 @@ bool Scene::render() {
 
     break;
   case normal:
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
+
     renderAll(shaders["Default"]);
     break;
   case texture:
@@ -351,14 +364,11 @@ void Scene::createUBO(Shader &shader, string_view blockName) {
   UBOs.insert({blockName, newUBO});
 }
 
-void Scene::initializeShadowMapFramebuffer() {
-  glGenFramebuffers(1, &depthMapFBO);
+void Scene::initializeShadowMap() {
+  glGenFramebuffers(1, &shadowMapFBO);
 
-  const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-
-  unsigned int depthMap;
-  glGenTextures(1, &depthMap);
-  glBindTexture(GL_TEXTURE_2D, depthMap);
+  glGenTextures(1, &shadowMapTexture);
+  glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH,
                SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -366,12 +376,20 @@ void Scene::initializeShadowMapFramebuffer() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+  float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-                         depthMap, 0);
+                         shadowMapTexture, 0);
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  UBOs.emplace("shadowMapMatrix",
+               new UBO(shaders["Default"]->ID, "shadowMapMatrix"));
+
+  shaders["Default"]->bindUBO(UBOs["shadowMapMatrix"]);
 }
 
 void Scene::renderAll(Shader *shader) {
@@ -380,4 +398,32 @@ void Scene::renderAll(Shader *shader) {
     shader->bindUBO(m->getModelUBO());
     m->Draw(*shader);
   }
+}
+
+void Scene::renderShadowMap() {
+  glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+  glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+  glEnable(GL_DEPTH_TEST);
+  glClear(GL_DEPTH_BUFFER_BIT);
+  glCullFace(GL_FRONT);
+
+  float near_plane = 1.0f, far_plane = 7.5f;
+  glm::mat4 lightProjection =
+      glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+
+  static auto LightsUBO = scene->UBOs["Lights"];
+
+  auto lightDir = *reinterpret_cast<glm::vec3 *>(
+      LightsUBO->getBufferPtr() +
+      LightsUBO->getUBOMemberOffset<"dirLight.direction">());
+
+  glm::mat4 lightView = glm::lookAt(-lightDir, glm::vec3(0.0f, 0.0f, 0.0f),
+                                    glm::vec3(0.0f, 1.0f, 0.0f));
+
+  lightSpaceMatrix = lightProjection * lightView;
+  UBOs["shadowMapMatrix"]->setUBOMember<"lightSpaceMatrix">(lightSpaceMatrix);
+
+  renderAll(shaders["ShadowMap"]);
+
+  glCullFace(GL_BACK);
 }
